@@ -1,0 +1,4928 @@
+{
+  "Color": {
+    "ActionAlert": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.88
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            217.0,
+            28.0,
+            21.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionEmphasis": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            51.0,
+            95.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionLink": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionOverMedia": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionSoftEmphasis": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            51.0,
+            95.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.7
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            20.0,
+            92.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionStandard": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.88
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionSubEmphasis": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionSubtle": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            73.0,
+            77.0,
+            90.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionUtility": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "Common": {
+      "Backdrop": {
+        "Color3": {
+          "$rgb": [
+            10.0,
+            10.0,
+            14.0
+          ]
+        },
+        "Transparency": 0.5
+      },
+      "HeavyDivider": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.96
+      },
+      "NavigationBar": {
+        "Color3": {
+          "$rgb": [
+            255.0,
+            255.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Scrim": {
+        "Color3": {
+          "$rgb": [
+            10.0,
+            10.0,
+            14.0
+          ]
+        },
+        "Transparency": 0.5
+      },
+      "Shadow": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 0.5
+      },
+      "Shimmer": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.88
+      }
+    },
+    "Content": {
+      "Default": {
+        "Color3": {
+          "$rgb": [
+            73.0,
+            77.0,
+            90.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Emphasis": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Link": {
+        "Color3": {
+          "$rgb": [
+            20.0,
+            70.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Muted": {
+        "Color3": {
+          "$rgb": [
+            106.0,
+            111.0,
+            129.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "Extended": {
+      "Black": {
+        "Black_0": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "Transparency": 1.0
+        },
+        "Black_03": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.97
+        },
+        "Black_05": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.95
+        },
+        "Black_10": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.9
+        },
+        "Black_100": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Black_15": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.85
+        },
+        "Black_20": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.8
+        },
+        "Black_30": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.7
+        },
+        "Black_40": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.6
+        },
+        "Black_50": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.5
+        },
+        "Black_60": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.4
+        },
+        "Black_70": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.3
+        },
+        "Black_80": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.2
+        },
+        "Black_85": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.15
+        },
+        "Black_90": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.1
+        },
+        "Black_95": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.05
+        },
+        "Black_97": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.03
+        }
+      },
+      "Blue": {
+        "Blue_100": {
+          "Color3": {
+            "$rgb": [
+              235.0,
+              241.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Blue_1000": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              45.0,
+              214.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Blue_1100": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              39.0,
+              184.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Blue_1200": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              34.0,
+              153.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Blue_1300": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              27.0,
+              122.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Blue_1400": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              20.0,
+              92.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Blue_200": {
+          "Color3": {
+            "$rgb": [
+              204.0,
+              221.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Blue_300": {
+          "Color3": {
+            "$rgb": [
+              173.0,
+              201.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Blue_400": {
+          "Color3": {
+            "$rgb": [
+              143.0,
+              180.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Blue_500": {
+          "Color3": {
+            "$rgb": [
+              112.0,
+              160.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Blue_600": {
+          "Color3": {
+            "$rgb": [
+              82.0,
+              139.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Blue_700": {
+          "Color3": {
+            "$rgb": [
+              51.0,
+              95.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Blue_800": {
+          "Color3": {
+            "$rgb": [
+              20.0,
+              70.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Blue_900": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              53.0,
+              245.0
+            ]
+          },
+          "Transparency": 0.0
+        }
+      },
+      "Gray": {
+        "Gray_100": {
+          "Color3": {
+            "$rgb": [
+              247.0,
+              247.0,
+              248.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Gray_1000": {
+          "Color3": {
+            "$rgb": [
+              32.0,
+              34.0,
+              39.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Gray_1100": {
+          "Color3": {
+            "$rgb": [
+              25.0,
+              26.0,
+              31.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Gray_1200": {
+          "Color3": {
+            "$rgb": [
+              18.0,
+              18.0,
+              21.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Gray_200": {
+          "Color3": {
+            "$rgb": [
+              238.0,
+              239.0,
+              241.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Gray_300": {
+          "Color3": {
+            "$rgb": [
+              230.0,
+              231.0,
+              234.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Gray_400": {
+          "Color3": {
+            "$rgb": [
+              213.0,
+              215.0,
+              221.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Gray_500": {
+          "Color3": {
+            "$rgb": [
+              188.0,
+              190.0,
+              200.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Gray_600": {
+          "Color3": {
+            "$rgb": [
+              106.0,
+              111.0,
+              129.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Gray_700": {
+          "Color3": {
+            "$rgb": [
+              73.0,
+              77.0,
+              90.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Gray_800": {
+          "Color3": {
+            "$rgb": [
+              53.0,
+              55.0,
+              65.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Gray_900": {
+          "Color3": {
+            "$rgb": [
+              39.0,
+              41.0,
+              48.0
+            ]
+          },
+          "Transparency": 0.0
+        }
+      },
+      "Green": {
+        "Green_100": {
+          "Color3": {
+            "$rgb": [
+              208.0,
+              251.0,
+              227.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Green_1000": {
+          "Color3": {
+            "$rgb": [
+              1.0,
+              95.0,
+              53.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Green_1100": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              74.0,
+              41.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Green_1200": {
+          "Color3": {
+            "$rgb": [
+              1.0,
+              56.0,
+              31.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Green_1300": {
+          "Color3": {
+            "$rgb": [
+              10.0,
+              38.0,
+              18.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Green_1400": {
+          "Color3": {
+            "$rgb": [
+              0.0,
+              22.0,
+              12.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Green_200": {
+          "Color3": {
+            "$rgb": [
+              176.0,
+              246.0,
+              208.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Green_300": {
+          "Color3": {
+            "$rgb": [
+              142.0,
+              233.0,
+              182.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Green_400": {
+          "Color3": {
+            "$rgb": [
+              101.0,
+              215.0,
+              157.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Green_500": {
+          "Color3": {
+            "$rgb": [
+              57.0,
+              197.0,
+              130.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Green_600": {
+          "Color3": {
+            "$rgb": [
+              29.0,
+              177.0,
+              106.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Green_700": {
+          "Color3": {
+            "$rgb": [
+              12.0,
+              155.0,
+              90.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Green_800": {
+          "Color3": {
+            "$rgb": [
+              1.0,
+              133.0,
+              75.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Green_900": {
+          "Color3": {
+            "$rgb": [
+              2.0,
+              114.0,
+              64.0
+            ]
+          },
+          "Transparency": 0.0
+        }
+      },
+      "Magenta": {
+        "Magenta_100": {
+          "Color3": {
+            "$rgb": [
+              253.0,
+              232.0,
+              249.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Magenta_1000": {
+          "Color3": {
+            "$rgb": [
+              138.0,
+              12.0,
+              167.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Magenta_1100": {
+          "Color3": {
+            "$rgb": [
+              110.0,
+              7.0,
+              133.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Magenta_1200": {
+          "Color3": {
+            "$rgb": [
+              84.0,
+              4.0,
+              103.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Magenta_1300": {
+          "Color3": {
+            "$rgb": [
+              60.0,
+              2.0,
+              74.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Magenta_1400": {
+          "Color3": {
+            "$rgb": [
+              35.0,
+              4.0,
+              42.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Magenta_200": {
+          "Color3": {
+            "$rgb": [
+              253.0,
+              221.0,
+              253.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Magenta_300": {
+          "Color3": {
+            "$rgb": [
+              245.0,
+              200.0,
+              252.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Magenta_400": {
+          "Color3": {
+            "$rgb": [
+              239.0,
+              170.0,
+              250.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Magenta_500": {
+          "Color3": {
+            "$rgb": [
+              232.0,
+              139.0,
+              248.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Magenta_600": {
+          "Color3": {
+            "$rgb": [
+              223.0,
+              106.0,
+              247.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Magenta_700": {
+          "Color3": {
+            "$rgb": [
+              213.0,
+              64.0,
+              245.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Magenta_800": {
+          "Color3": {
+            "$rgb": [
+              192.0,
+              10.0,
+              232.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Magenta_900": {
+          "Color3": {
+            "$rgb": [
+              165.0,
+              14.0,
+              200.0
+            ]
+          },
+          "Transparency": 0.0
+        }
+      },
+      "Orange": {
+        "Orange_100": {
+          "Color3": {
+            "$rgb": [
+              253.0,
+              232.0,
+              216.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Orange_1000": {
+          "Color3": {
+            "$rgb": [
+              144.0,
+              51.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Orange_1100": {
+          "Color3": {
+            "$rgb": [
+              115.0,
+              40.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Orange_1200": {
+          "Color3": {
+            "$rgb": [
+              87.0,
+              30.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Orange_1300": {
+          "Color3": {
+            "$rgb": [
+              60.0,
+              21.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Orange_1400": {
+          "Color3": {
+            "$rgb": [
+              33.0,
+              13.0,
+              1.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Orange_200": {
+          "Color3": {
+            "$rgb": [
+              252.0,
+              222.0,
+              199.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Orange_300": {
+          "Color3": {
+            "$rgb": [
+              251.0,
+              206.0,
+              174.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Orange_400": {
+          "Color3": {
+            "$rgb": [
+              251.0,
+              178.0,
+              134.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Orange_500": {
+          "Color3": {
+            "$rgb": [
+              250.0,
+              148.0,
+              90.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Orange_600": {
+          "Color3": {
+            "$rgb": [
+              245.0,
+              118.0,
+              48.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Orange_700": {
+          "Color3": {
+            "$rgb": [
+              220.0,
+              100.0,
+              35.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Orange_800": {
+          "Color3": {
+            "$rgb": [
+              192.0,
+              80.0,
+              20.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Orange_900": {
+          "Color3": {
+            "$rgb": [
+              169.0,
+              67.0,
+              11.0
+            ]
+          },
+          "Transparency": 0.0
+        }
+      },
+      "Pink": {
+        "Pink_100": {
+          "Color3": {
+            "$rgb": [
+              255.0,
+              230.0,
+              242.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Pink_1000": {
+          "Color3": {
+            "$rgb": [
+              153.0,
+              29.0,
+              88.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Pink_1100": {
+          "Color3": {
+            "$rgb": [
+              99.0,
+              3.0,
+              53.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Pink_1200": {
+          "Color3": {
+            "$rgb": [
+              99.0,
+              3.0,
+              53.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Pink_1300": {
+          "Color3": {
+            "$rgb": [
+              70.0,
+              4.0,
+              36.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Pink_1400": {
+          "Color3": {
+            "$rgb": [
+              43.0,
+              2.0,
+              21.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Pink_200": {
+          "Color3": {
+            "$rgb": [
+              254.0,
+              220.0,
+              236.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Pink_300": {
+          "Color3": {
+            "$rgb": [
+              250.0,
+              202.0,
+              224.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Pink_400": {
+          "Color3": {
+            "$rgb": [
+              247.0,
+              173.0,
+              207.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Pink_500": {
+          "Color3": {
+            "$rgb": [
+              243.0,
+              143.0,
+              184.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Pink_600": {
+          "Color3": {
+            "$rgb": [
+              238.0,
+              114.0,
+              161.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Pink_700": {
+          "Color3": {
+            "$rgb": [
+              231.0,
+              78.0,
+              144.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Pink_800": {
+          "Color3": {
+            "$rgb": [
+              205.0,
+              55.0,
+              123.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Pink_900": {
+          "Color3": {
+            "$rgb": [
+              180.0,
+              43.0,
+              106.0
+            ]
+          },
+          "Transparency": 0.0
+        }
+      },
+      "Purple": {
+        "Purple_100": {
+          "Color3": {
+            "$rgb": [
+              241.0,
+              231.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Purple_1000": {
+          "Color3": {
+            "$rgb": [
+              108.0,
+              33.0,
+              198.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Purple_1100": {
+          "Color3": {
+            "$rgb": [
+              86.0,
+              20.0,
+              165.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Purple_1200": {
+          "Color3": {
+            "$rgb": [
+              65.0,
+              8.0,
+              134.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Purple_1300": {
+          "Color3": {
+            "$rgb": [
+              45.0,
+              4.0,
+              96.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Purple_1400": {
+          "Color3": {
+            "$rgb": [
+              28.0,
+              2.0,
+              59.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Purple_200": {
+          "Color3": {
+            "$rgb": [
+              233.0,
+              222.0,
+              251.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Purple_300": {
+          "Color3": {
+            "$rgb": [
+              226.0,
+              206.0,
+              253.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Purple_400": {
+          "Color3": {
+            "$rgb": [
+              212.0,
+              181.0,
+              252.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Purple_500": {
+          "Color3": {
+            "$rgb": [
+              197.0,
+              156.0,
+              249.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Purple_600": {
+          "Color3": {
+            "$rgb": [
+              182.0,
+              130.0,
+              247.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Purple_700": {
+          "Color3": {
+            "$rgb": [
+              167.0,
+              102.0,
+              245.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Purple_800": {
+          "Color3": {
+            "$rgb": [
+              147.0,
+              72.0,
+              240.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Purple_900": {
+          "Color3": {
+            "$rgb": [
+              130.0,
+              46.0,
+              231.0
+            ]
+          },
+          "Transparency": 0.0
+        }
+      },
+      "Red": {
+        "Red_100": {
+          "Color3": {
+            "$rgb": [
+              255.0,
+              234.0,
+              233.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Red_1000": {
+          "Color3": {
+            "$rgb": [
+              164.0,
+              17.0,
+              9.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Red_1100": {
+          "Color3": {
+            "$rgb": [
+              131.0,
+              15.0,
+              7.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Red_1200": {
+          "Color3": {
+            "$rgb": [
+              100.0,
+              12.0,
+              5.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Red_1300": {
+          "Color3": {
+            "$rgb": [
+              71.0,
+              8.0,
+              4.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Red_1400": {
+          "Color3": {
+            "$rgb": [
+              40.0,
+              6.0,
+              3.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Red_200": {
+          "Color3": {
+            "$rgb": [
+              255.0,
+              223.0,
+              222.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Red_300": {
+          "Color3": {
+            "$rgb": [
+              247.0,
+              205.0,
+              203.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Red_400": {
+          "Color3": {
+            "$rgb": [
+              243.0,
+              178.0,
+              174.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Red_500": {
+          "Color3": {
+            "$rgb": [
+              238.0,
+              151.0,
+              145.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Red_600": {
+          "Color3": {
+            "$rgb": [
+              235.0,
+              121.0,
+              115.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Red_700": {
+          "Color3": {
+            "$rgb": [
+              231.0,
+              87.0,
+              80.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Red_800": {
+          "Color3": {
+            "$rgb": [
+              223.0,
+              40.0,
+              31.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Red_900": {
+          "Color3": {
+            "$rgb": [
+              197.0,
+              18.0,
+              10.0
+            ]
+          },
+          "Transparency": 0.0
+        }
+      },
+      "Turquoise": {
+        "Turquoise_100": {
+          "Color3": {
+            "$rgb": [
+              200.0,
+              246.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Turquoise_1000": {
+          "Color3": {
+            "$rgb": [
+              5.0,
+              90.0,
+              106.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Turquoise_1100": {
+          "Color3": {
+            "$rgb": [
+              4.0,
+              71.0,
+              84.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Turquoise_1200": {
+          "Color3": {
+            "$rgb": [
+              2.0,
+              53.0,
+              63.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Turquoise_1300": {
+          "Color3": {
+            "$rgb": [
+              2.0,
+              37.0,
+              44.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Turquoise_1400": {
+          "Color3": {
+            "$rgb": [
+              2.0,
+              20.0,
+              24.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Turquoise_200": {
+          "Color3": {
+            "$rgb": [
+              163.0,
+              239.0,
+              254.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Turquoise_300": {
+          "Color3": {
+            "$rgb": [
+              126.0,
+              229.0,
+              248.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Turquoise_400": {
+          "Color3": {
+            "$rgb": [
+              92.0,
+              210.0,
+              232.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Turquoise_500": {
+          "Color3": {
+            "$rgb": [
+              57.0,
+              189.0,
+              216.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Turquoise_600": {
+          "Color3": {
+            "$rgb": [
+              22.0,
+              169.0,
+              199.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Turquoise_700": {
+          "Color3": {
+            "$rgb": [
+              4.0,
+              148.0,
+              178.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Turquoise_800": {
+          "Color3": {
+            "$rgb": [
+              18.0,
+              125.0,
+              152.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Turquoise_900": {
+          "Color3": {
+            "$rgb": [
+              5.0,
+              108.0,
+              130.0
+            ]
+          },
+          "Transparency": 0.0
+        }
+      },
+      "White": {
+        "White_0": {
+          "Color3": {
+            "$rgb": [
+              255.0,
+              255.0,
+              255.0
+            ]
+          },
+          "Transparency": 1.0
+        },
+        "White_03": {
+          "Color3": {
+            "$rgb": [
+              255.0,
+              255.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.97
+        },
+        "White_05": {
+          "Color3": {
+            "$rgb": [
+              255.0,
+              255.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.95
+        },
+        "White_10": {
+          "Color3": {
+            "$rgb": [
+              255.0,
+              255.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.9
+        },
+        "White_100": {
+          "Color3": {
+            "$rgb": [
+              255.0,
+              255.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "White_15": {
+          "Color3": {
+            "$rgb": [
+              255.0,
+              255.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.85
+        },
+        "White_20": {
+          "Color3": {
+            "$rgb": [
+              255.0,
+              255.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.8
+        },
+        "White_30": {
+          "Color3": {
+            "$rgb": [
+              255.0,
+              255.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.7
+        },
+        "White_40": {
+          "Color3": {
+            "$rgb": [
+              255.0,
+              255.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.6
+        },
+        "White_50": {
+          "Color3": {
+            "$rgb": [
+              255.0,
+              255.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.5
+        },
+        "White_60": {
+          "Color3": {
+            "$rgb": [
+              255.0,
+              255.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.4
+        },
+        "White_70": {
+          "Color3": {
+            "$rgb": [
+              255.0,
+              255.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.3
+        },
+        "White_80": {
+          "Color3": {
+            "$rgb": [
+              255.0,
+              255.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.2
+        },
+        "White_85": {
+          "Color3": {
+            "$rgb": [
+              255.0,
+              255.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.15
+        },
+        "White_90": {
+          "Color3": {
+            "$rgb": [
+              255.0,
+              255.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.1
+        },
+        "White_95": {
+          "Color3": {
+            "$rgb": [
+              255.0,
+              255.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.05
+        },
+        "White_97": {
+          "Color3": {
+            "$rgb": [
+              255.0,
+              255.0,
+              255.0
+            ]
+          },
+          "Transparency": 0.03
+        }
+      },
+      "Yellow": {
+        "Yellow_100": {
+          "Color3": {
+            "$rgb": [
+              253.0,
+              236.0,
+              193.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Yellow_1000": {
+          "Color3": {
+            "$rgb": [
+              107.0,
+              76.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Yellow_1100": {
+          "Color3": {
+            "$rgb": [
+              83.0,
+              61.0,
+              2.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Yellow_1200": {
+          "Color3": {
+            "$rgb": [
+              63.0,
+              45.0,
+              1.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Yellow_1300": {
+          "Color3": {
+            "$rgb": [
+              44.0,
+              31.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Yellow_1400": {
+          "Color3": {
+            "$rgb": [
+              24.0,
+              17.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Yellow_200": {
+          "Color3": {
+            "$rgb": [
+              250.0,
+              228.0,
+              170.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Yellow_300": {
+          "Color3": {
+            "$rgb": [
+              247.0,
+              210.0,
+              115.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Yellow_400": {
+          "Color3": {
+            "$rgb": [
+              242.0,
+              186.0,
+              42.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Yellow_500": {
+          "Color3": {
+            "$rgb": [
+              219.0,
+              166.0,
+              31.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Yellow_600": {
+          "Color3": {
+            "$rgb": [
+              196.0,
+              147.0,
+              21.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Yellow_700": {
+          "Color3": {
+            "$rgb": [
+              174.0,
+              128.0,
+              11.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Yellow_800": {
+          "Color3": {
+            "$rgb": [
+              151.0,
+              108.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.0
+        },
+        "Yellow_900": {
+          "Color3": {
+            "$rgb": [
+              129.0,
+              93.0,
+              0.0
+            ]
+          },
+          "Transparency": 0.0
+        }
+      }
+    },
+    "None": {
+      "Color3": {
+        "$rgb": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "Transparency": 1.0
+    },
+    "OverMedia": {
+      "OverMedia_0": {
+        "Color3": {
+          "$rgb": [
+            255.0,
+            255.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.08
+      },
+      "OverMedia_100": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.08
+      },
+      "OverMedia_200": {
+        "Color3": {
+          "$rgb": [
+            255.0,
+            255.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.08
+      },
+      "OverMedia_300": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.08
+      }
+    },
+    "Selection": {
+      "End": {
+        "Color3": {
+          "$rgb": [
+            51.0,
+            95.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Start": {
+        "Color3": {
+          "$rgb": [
+            51.0,
+            95.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "Shift": {
+      "Shift_100": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.96
+      },
+      "Shift_200": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.92
+      },
+      "Shift_300": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.88
+      },
+      "Shift_400": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.84
+      }
+    },
+    "State": {
+      "Hover": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.92
+      },
+      "Idle": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Press": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.88
+      }
+    },
+    "Stroke": {
+      "Default": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.88
+      },
+      "Emphasis": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.84
+      },
+      "Muted": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.92
+      }
+    },
+    "Surface": {
+      "Surface_0": {
+        "Color3": {
+          "$rgb": [
+            255.0,
+            255.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Surface_100": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Surface_200": {
+        "Color3": {
+          "$rgb": [
+            255.0,
+            255.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Surface_300": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "System": {
+      "Alert": {
+        "Color3": {
+          "$rgb": [
+            223.0,
+            40.0,
+            31.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Contrast": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Emphasis": {
+        "Color3": {
+          "$rgb": [
+            51.0,
+            95.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Neutral": {
+        "Color3": {
+          "$rgb": [
+            73.0,
+            77.0,
+            90.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Success": {
+        "Color3": {
+          "$rgb": [
+            57.0,
+            197.0,
+            130.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Warning": {
+        "Color3": {
+          "$rgb": [
+            242.0,
+            186.0,
+            42.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    }
+  },
+  "Config": {
+    "ColorMode": {
+      "IsDark": "false",
+      "IsLight": "true",
+      "Name": "Light"
+    },
+    "Text": {
+      "Font": "rbxasset://fonts/families/BuilderSans.json",
+      "Interval": 5.04,
+      "InverseScale": 0.7936507936507936,
+      "NominalScale": 1.26,
+      "Scale": "scale"
+    },
+    "Theme": {
+      "IsClassic": "false",
+      "IsDefault": "true",
+      "IsFoundation": "true",
+      "IsKids": "false",
+      "IsUIBlox": "false",
+      "Name": "Foundation",
+      "Text": {
+        "Font": "rbxasset://fonts/families/BuilderSans.json",
+        "FontWeight": {
+          "FontWeight_300": "Light",
+          "FontWeight_400": "Regular",
+          "FontWeight_500": "Medium",
+          "FontWeight_600": "SemiBold",
+          "FontWeight_700": "Bold",
+          "FontWeight_800": "ExtraBold"
+        },
+        "NominalScale": 1.26
+      }
+    },
+    "UI": {
+      "Interval": 4.0,
+      "Scale": "scale",
+      "StrokeBase": 1.0
+    }
+  },
+  "DarkMode": {
+    "ActionAlert": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.88
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            240.0,
+            68.0,
+            51.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionEmphasis": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            51.0,
+            95.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionLink": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionOverMedia": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionSoftEmphasis": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            51.0,
+            95.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.6
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            235.0,
+            241.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionStandard": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.88
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionSubEmphasis": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionSubtle": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            213.0,
+            215.0,
+            221.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionUtility": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "Common": {
+      "Backdrop": {
+        "Color3": {
+          "$rgb": [
+            10.0,
+            10.0,
+            14.0
+          ]
+        },
+        "Transparency": 0.25
+      },
+      "HeavyDivider": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 0.5
+      },
+      "NavigationBar": {
+        "Color3": {
+          "$rgb": [
+            18.0,
+            18.0,
+            21.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Scrim": {
+        "Color3": {
+          "$rgb": [
+            10.0,
+            10.0,
+            14.0
+          ]
+        },
+        "Transparency": 0.25
+      },
+      "Shadow": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 0.5
+      },
+      "Shimmer": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.88
+      }
+    },
+    "Content": {
+      "Default": {
+        "Color3": {
+          "$rgb": [
+            213.0,
+            215.0,
+            221.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Emphasis": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Link": {
+        "Color3": {
+          "$rgb": [
+            82.0,
+            139.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Muted": {
+        "Color3": {
+          "$rgb": [
+            188.0,
+            190.0,
+            200.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "None": {
+      "Color3": {
+        "$rgb": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "Transparency": 1.0
+    },
+    "OverMedia": {
+      "OverMedia_0": {
+        "Color3": {
+          "$rgb": [
+            18.0,
+            18.0,
+            21.0
+          ]
+        },
+        "Transparency": 0.08
+      },
+      "OverMedia_100": {
+        "Color3": {
+          "$rgb": [
+            25.0,
+            26.0,
+            31.0
+          ]
+        },
+        "Transparency": 0.08
+      },
+      "OverMedia_200": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.08
+      },
+      "OverMedia_300": {
+        "Color3": {
+          "$rgb": [
+            39.0,
+            41.0,
+            48.0
+          ]
+        },
+        "Transparency": 0.08
+      }
+    },
+    "Selection": {
+      "End": {
+        "Color3": {
+          "$rgb": [
+            255.0,
+            255.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Start": {
+        "Color3": {
+          "$rgb": [
+            255.0,
+            255.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "Shift": {
+      "Shift_100": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.96
+      },
+      "Shift_200": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.92
+      },
+      "Shift_300": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.88
+      },
+      "Shift_400": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.84
+      }
+    },
+    "State": {
+      "Hover": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.92
+      },
+      "Idle": {
+        "Color3": {
+          "$rgb": [
+            255.0,
+            255.0,
+            255.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Press": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.88
+      }
+    },
+    "Stroke": {
+      "Default": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.88
+      },
+      "Emphasis": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.84
+      },
+      "Muted": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.92
+      }
+    },
+    "Surface": {
+      "Surface_0": {
+        "Color3": {
+          "$rgb": [
+            18.0,
+            18.0,
+            21.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Surface_100": {
+        "Color3": {
+          "$rgb": [
+            25.0,
+            26.0,
+            31.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Surface_200": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Surface_300": {
+        "Color3": {
+          "$rgb": [
+            39.0,
+            41.0,
+            48.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "System": {
+      "Alert": {
+        "Color3": {
+          "$rgb": [
+            223.0,
+            40.0,
+            31.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Contrast": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Emphasis": {
+        "Color3": {
+          "$rgb": [
+            51.0,
+            95.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Neutral": {
+        "Color3": {
+          "$rgb": [
+            188.0,
+            190.0,
+            200.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Success": {
+        "Color3": {
+          "$rgb": [
+            57.0,
+            197.0,
+            130.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Warning": {
+        "Color3": {
+          "$rgb": [
+            242.0,
+            186.0,
+            42.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    }
+  },
+  "Ease": {
+    "ExpressiveIn": [
+      0.25,
+      0.0,
+      0.5,
+      -1.0
+    ],
+    "ExpressiveOut": [
+      0.25,
+      1.5,
+      0.5,
+      1.0
+    ],
+    "Linear": [
+      0.0,
+      0.0,
+      1.0,
+      1.0
+    ],
+    "StandardIn": [
+      0.8,
+      0.0,
+      0.4,
+      1.0
+    ],
+    "StandardOut": [
+      0.2,
+      0.0,
+      0.0,
+      1.0
+    ]
+  },
+  "FontSize": {
+    "FontSize_1000": 50.0,
+    "FontSize_1100": 55.0,
+    "FontSize_1200": 60.0,
+    "FontSize_1300": 66.0,
+    "FontSize_1400": 71.0,
+    "FontSize_1500": 76.0,
+    "FontSize_1600": 81.0,
+    "FontSize_1700": 86.0,
+    "FontSize_1800": 91.0,
+    "FontSize_1900": 96.0,
+    "FontSize_200": 10.0,
+    "FontSize_2000": 101.0,
+    "FontSize_2100": 106.0,
+    "FontSize_2200": 111.0,
+    "FontSize_2300": 116.0,
+    "FontSize_2400": 121.0,
+    "FontSize_250": 13.0,
+    "FontSize_2500": 126.0,
+    "FontSize_2600": 131.0,
+    "FontSize_2700": 136.0,
+    "FontSize_2800": 141.0,
+    "FontSize_2900": 146.0,
+    "FontSize_300": 15.0,
+    "FontSize_3000": 151.0,
+    "FontSize_350": 18.0,
+    "FontSize_400": 20.0,
+    "FontSize_500": 25.0,
+    "FontSize_600": 30.0,
+    "FontSize_700": 35.0,
+    "FontSize_800": 40.0,
+    "FontSize_900": 45.0
+  },
+  "FontWeight": {
+    "FontWeight_300": "Light",
+    "FontWeight_400": "Regular",
+    "FontWeight_500": "Medium",
+    "FontWeight_600": "SemiBold",
+    "FontWeight_700": "Bold",
+    "FontWeight_800": "ExtraBold"
+  },
+  "Gap": {
+    "Large": 16.0,
+    "Medium": 12.0,
+    "None": 0.0,
+    "Small": 8.0,
+    "XLarge": 20.0,
+    "XSmall": 4.0,
+    "XXLarge": 24.0,
+    "XXSmall": 2.0
+  },
+  "Gutter": {
+    "Large": 16.0,
+    "Medium": 12.0,
+    "None": 0.0,
+    "Small": 8.0,
+    "XLarge": 20.0,
+    "XXLarge": 24.0
+  },
+  "IconSize": {
+    "Large": 24.0,
+    "Medium": 20.0,
+    "Small": 16.0,
+    "XLarge": 28.0,
+    "XSmall": 12.0,
+    "XXLarge": 32.0
+  },
+  "InputSize": {
+    "Large": 48.0,
+    "Medium": 40.0,
+    "Small": 32.0,
+    "XSmall": 24.0
+  },
+  "Inverse": {
+    "ActionAlert": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.88
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            240.0,
+            68.0,
+            51.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionEmphasis": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            51.0,
+            95.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionLink": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionOverMedia": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionSoftEmphasis": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            51.0,
+            95.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.6
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            235.0,
+            241.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionStandard": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.88
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionSubEmphasis": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionSubtle": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            213.0,
+            215.0,
+            221.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionUtility": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "Common": {
+      "Backdrop": {
+        "Color3": {
+          "$rgb": [
+            10.0,
+            10.0,
+            14.0
+          ]
+        },
+        "Transparency": 0.25
+      },
+      "HeavyDivider": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 0.5
+      },
+      "NavigationBar": {
+        "Color3": {
+          "$rgb": [
+            18.0,
+            18.0,
+            21.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Scrim": {
+        "Color3": {
+          "$rgb": [
+            10.0,
+            10.0,
+            14.0
+          ]
+        },
+        "Transparency": 0.25
+      },
+      "Shadow": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 0.5
+      },
+      "Shimmer": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.88
+      }
+    },
+    "Content": {
+      "Default": {
+        "Color3": {
+          "$rgb": [
+            213.0,
+            215.0,
+            221.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Emphasis": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Link": {
+        "Color3": {
+          "$rgb": [
+            82.0,
+            139.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Muted": {
+        "Color3": {
+          "$rgb": [
+            188.0,
+            190.0,
+            200.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "None": {
+      "Color3": {
+        "$rgb": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "Transparency": 1.0
+    },
+    "OverMedia": {
+      "OverMedia_0": {
+        "Color3": {
+          "$rgb": [
+            18.0,
+            18.0,
+            21.0
+          ]
+        },
+        "Transparency": 0.08
+      },
+      "OverMedia_100": {
+        "Color3": {
+          "$rgb": [
+            25.0,
+            26.0,
+            31.0
+          ]
+        },
+        "Transparency": 0.08
+      },
+      "OverMedia_200": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.08
+      },
+      "OverMedia_300": {
+        "Color3": {
+          "$rgb": [
+            39.0,
+            41.0,
+            48.0
+          ]
+        },
+        "Transparency": 0.08
+      }
+    },
+    "Selection": {
+      "End": {
+        "Color3": {
+          "$rgb": [
+            255.0,
+            255.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Start": {
+        "Color3": {
+          "$rgb": [
+            255.0,
+            255.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "Shift": {
+      "Shift_100": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.96
+      },
+      "Shift_200": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.92
+      },
+      "Shift_300": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.88
+      },
+      "Shift_400": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.84
+      }
+    },
+    "State": {
+      "Hover": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.92
+      },
+      "Idle": {
+        "Color3": {
+          "$rgb": [
+            255.0,
+            255.0,
+            255.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Press": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.88
+      }
+    },
+    "Stroke": {
+      "Default": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.88
+      },
+      "Emphasis": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.84
+      },
+      "Muted": {
+        "Color3": {
+          "$rgb": [
+            208.0,
+            217.0,
+            251.0
+          ]
+        },
+        "Transparency": 0.92
+      }
+    },
+    "Surface": {
+      "Surface_0": {
+        "Color3": {
+          "$rgb": [
+            18.0,
+            18.0,
+            21.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Surface_100": {
+        "Color3": {
+          "$rgb": [
+            25.0,
+            26.0,
+            31.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Surface_200": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Surface_300": {
+        "Color3": {
+          "$rgb": [
+            39.0,
+            41.0,
+            48.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "System": {
+      "Alert": {
+        "Color3": {
+          "$rgb": [
+            223.0,
+            40.0,
+            31.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Contrast": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Emphasis": {
+        "Color3": {
+          "$rgb": [
+            51.0,
+            95.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Neutral": {
+        "Color3": {
+          "$rgb": [
+            188.0,
+            190.0,
+            200.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Success": {
+        "Color3": {
+          "$rgb": [
+            57.0,
+            197.0,
+            130.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Warning": {
+        "Color3": {
+          "$rgb": [
+            242.0,
+            186.0,
+            42.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    }
+  },
+  "LetterSpacing": {
+    "Default": 0.0,
+    "Loose": 0.01,
+    "Tight": -0.01
+  },
+  "LightMode": {
+    "ActionAlert": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.88
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            217.0,
+            28.0,
+            21.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionEmphasis": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            51.0,
+            95.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionLink": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionOverMedia": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionSoftEmphasis": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            51.0,
+            95.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.7
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            20.0,
+            92.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionStandard": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.88
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionSubEmphasis": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionSubtle": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            73.0,
+            77.0,
+            90.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "ActionUtility": {
+      "Background": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Border": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Foreground": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "Common": {
+      "Backdrop": {
+        "Color3": {
+          "$rgb": [
+            10.0,
+            10.0,
+            14.0
+          ]
+        },
+        "Transparency": 0.5
+      },
+      "HeavyDivider": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.96
+      },
+      "NavigationBar": {
+        "Color3": {
+          "$rgb": [
+            255.0,
+            255.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Scrim": {
+        "Color3": {
+          "$rgb": [
+            10.0,
+            10.0,
+            14.0
+          ]
+        },
+        "Transparency": 0.5
+      },
+      "Shadow": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 0.5
+      },
+      "Shimmer": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.88
+      }
+    },
+    "Content": {
+      "Default": {
+        "Color3": {
+          "$rgb": [
+            73.0,
+            77.0,
+            90.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Emphasis": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Link": {
+        "Color3": {
+          "$rgb": [
+            20.0,
+            70.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Muted": {
+        "Color3": {
+          "$rgb": [
+            106.0,
+            111.0,
+            129.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "None": {
+      "Color3": {
+        "$rgb": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "Transparency": 1.0
+    },
+    "OverMedia": {
+      "OverMedia_0": {
+        "Color3": {
+          "$rgb": [
+            255.0,
+            255.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.08
+      },
+      "OverMedia_100": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.08
+      },
+      "OverMedia_200": {
+        "Color3": {
+          "$rgb": [
+            255.0,
+            255.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.08
+      },
+      "OverMedia_300": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.08
+      }
+    },
+    "Selection": {
+      "End": {
+        "Color3": {
+          "$rgb": [
+            51.0,
+            95.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Start": {
+        "Color3": {
+          "$rgb": [
+            51.0,
+            95.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "Shift": {
+      "Shift_100": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.96
+      },
+      "Shift_200": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.92
+      },
+      "Shift_300": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.88
+      },
+      "Shift_400": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.84
+      }
+    },
+    "State": {
+      "Hover": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.92
+      },
+      "Idle": {
+        "Color3": {
+          "$rgb": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Transparency": 1.0
+      },
+      "Press": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.88
+      }
+    },
+    "Stroke": {
+      "Default": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.88
+      },
+      "Emphasis": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.84
+      },
+      "Muted": {
+        "Color3": {
+          "$rgb": [
+            27.0,
+            37.0,
+            75.0
+          ]
+        },
+        "Transparency": 0.92
+      }
+    },
+    "Surface": {
+      "Surface_0": {
+        "Color3": {
+          "$rgb": [
+            255.0,
+            255.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Surface_100": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Surface_200": {
+        "Color3": {
+          "$rgb": [
+            255.0,
+            255.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Surface_300": {
+        "Color3": {
+          "$rgb": [
+            247.0,
+            247.0,
+            248.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    },
+    "System": {
+      "Alert": {
+        "Color3": {
+          "$rgb": [
+            223.0,
+            40.0,
+            31.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Contrast": {
+        "Color3": {
+          "$rgb": [
+            32.0,
+            34.0,
+            39.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Emphasis": {
+        "Color3": {
+          "$rgb": [
+            51.0,
+            95.0,
+            255.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Neutral": {
+        "Color3": {
+          "$rgb": [
+            73.0,
+            77.0,
+            90.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Success": {
+        "Color3": {
+          "$rgb": [
+            57.0,
+            197.0,
+            130.0
+          ]
+        },
+        "Transparency": 0.0
+      },
+      "Warning": {
+        "Color3": {
+          "$rgb": [
+            242.0,
+            186.0,
+            42.0
+          ]
+        },
+        "Transparency": 0.0
+      }
+    }
+  },
+  "LineHeight": {
+    "LineHeight_100": 0.794,
+    "LineHeight_120": 0.952,
+    "LineHeight_130": 1.032,
+    "LineHeight_140": 1.111
+  },
+  "Margin": {
+    "Large": 48.0,
+    "Medium": 24.0,
+    "None": 0.0,
+    "Small": 20.0
+  },
+  "Padding": {
+    "Large": 16.0,
+    "Medium": 12.0,
+    "None": 0.0,
+    "Small": 8.0,
+    "XLarge": 20.0,
+    "XSmall": 4.0,
+    "XXLarge": 24.0,
+    "XXSmall": 2.0
+  },
+  "Platform": {
+    "Base": 4.0,
+    "Rem": 8.0,
+    "Scale": 1.0
+  },
+  "Radius": {
+    "Circle": 9999.0,
+    "Large": 16.0,
+    "Medium": 8.0,
+    "None": 0.0,
+    "Small": 4.0,
+    "XSmall": 2.0
+  },
+  "Size": {
+    "Size_0": 0.0,
+    "Size_100": 4.0,
+    "Size_1000": 40.0,
+    "Size_1100": 44.0,
+    "Size_1200": 48.0,
+    "Size_1300": 52.0,
+    "Size_1400": 56.0,
+    "Size_150": 6.0,
+    "Size_1500": 60.0,
+    "Size_1600": 64.0,
+    "Size_1700": 68.0,
+    "Size_1800": 72.0,
+    "Size_1900": 76.0,
+    "Size_200": 8.0,
+    "Size_2000": 80.0,
+    "Size_2100": 84.0,
+    "Size_2200": 88.0,
+    "Size_2300": 92.0,
+    "Size_2400": 96.0,
+    "Size_250": 10.0,
+    "Size_2500": 100.0,
+    "Size_2600": 104.0,
+    "Size_2700": 108.0,
+    "Size_2800": 112.0,
+    "Size_2900": 116.0,
+    "Size_300": 12.0,
+    "Size_3000": 120.0,
+    "Size_350": 14.0,
+    "Size_400": 16.0,
+    "Size_450": 18.0,
+    "Size_50": 2.0,
+    "Size_500": 20.0,
+    "Size_550": 22.0,
+    "Size_600": 24.0,
+    "Size_700": 28.0,
+    "Size_800": 32.0,
+    "Size_850": 34.0,
+    "Size_900": 36.0
+  },
+  "Stroke": {
+    "None": 0.0,
+    "Standard": 1.0,
+    "Thick": 1.5,
+    "Thicker": 3.0,
+    "Thin": 0.5
+  },
+  "Time": {
+    "Time_100": 0.1,
+    "Time_1000": 1.0,
+    "Time_200": 0.2,
+    "Time_300": 0.3,
+    "Time_400": 0.4,
+    "Time_50": 0.05,
+    "Time_500": 0.5,
+    "Time_600": 0.6,
+    "Time_700": 0.7,
+    "Time_800": 0.8,
+    "Time_900": 0.9
+  },
+  "ToggleSize": {
+    "Large": 28.0,
+    "Medium": 24.0,
+    "Small": 20.0,
+    "XSmall": 16.0
+  },
+  "Typography": {
+    "BodyLarge": {
+      "Font": {
+        "$font": {
+          "family": "rbxasset://fonts/families/BuilderSans.json",
+          "style": "Enum.FontStyle.Normal",
+          "weight": "Enum.FontWeight.Regular"
+        }
+      },
+      "FontSize": 20.0,
+      "LetterSpacing": 0.0,
+      "LineHeight": 1.1
+    },
+    "BodyMedium": {
+      "Font": {
+        "$font": {
+          "family": "rbxasset://fonts/families/BuilderSans.json",
+          "style": "Enum.FontStyle.Normal",
+          "weight": "Enum.FontWeight.Regular"
+        }
+      },
+      "FontSize": 18.0,
+      "LetterSpacing": 0.0,
+      "LineHeight": 1.111
+    },
+    "BodySmall": {
+      "Font": {
+        "$font": {
+          "family": "rbxasset://fonts/families/BuilderSans.json",
+          "style": "Enum.FontStyle.Normal",
+          "weight": "Enum.FontWeight.Regular"
+        }
+      },
+      "FontSize": 15.0,
+      "LetterSpacing": 0.0,
+      "LineHeight": 1.2
+    },
+    "CaptionLarge": {
+      "Font": {
+        "$font": {
+          "family": "rbxasset://fonts/families/BuilderSans.json",
+          "style": "Enum.FontStyle.Normal",
+          "weight": "Enum.FontWeight.Medium"
+        }
+      },
+      "FontSize": 18.0,
+      "LetterSpacing": 0.0,
+      "LineHeight": 1.111
+    },
+    "CaptionMedium": {
+      "Font": {
+        "$font": {
+          "family": "rbxasset://fonts/families/BuilderSans.json",
+          "style": "Enum.FontStyle.Normal",
+          "weight": "Enum.FontWeight.Medium"
+        }
+      },
+      "FontSize": 15.0,
+      "LetterSpacing": 0.0,
+      "LineHeight": 1.2
+    },
+    "CaptionSmall": {
+      "Font": {
+        "$font": {
+          "family": "rbxasset://fonts/families/BuilderSans.json",
+          "style": "Enum.FontStyle.Normal",
+          "weight": "Enum.FontWeight.Medium"
+        }
+      },
+      "FontSize": 13.0,
+      "LetterSpacing": 0.0,
+      "LineHeight": 1.077
+    },
+    "DisplayLarge": {
+      "Font": {
+        "$font": {
+          "family": "rbxasset://fonts/families/BuilderSans.json",
+          "style": "Enum.FontStyle.Normal",
+          "weight": "Enum.FontWeight.Bold"
+        }
+      },
+      "FontSize": 101.0,
+      "LetterSpacing": -0.01,
+      "LineHeight": 0.951
+    },
+    "DisplayMedium": {
+      "Font": {
+        "$font": {
+          "family": "rbxasset://fonts/families/BuilderSans.json",
+          "style": "Enum.FontStyle.Normal",
+          "weight": "Enum.FontWeight.Bold"
+        }
+      },
+      "FontSize": 71.0,
+      "LetterSpacing": -0.01,
+      "LineHeight": 0.958
+    },
+    "DisplaySmall": {
+      "Font": {
+        "$font": {
+          "family": "rbxasset://fonts/families/BuilderSans.json",
+          "style": "Enum.FontStyle.Normal",
+          "weight": "Enum.FontWeight.Bold"
+        }
+      },
+      "FontSize": 50.0,
+      "LetterSpacing": -0.01,
+      "LineHeight": 0.96
+    },
+    "HeadingLarge": {
+      "Font": {
+        "$font": {
+          "family": "rbxasset://fonts/families/BuilderSans.json",
+          "style": "Enum.FontStyle.Normal",
+          "weight": "Enum.FontWeight.Bold"
+        }
+      },
+      "FontSize": 35.0,
+      "LetterSpacing": -0.01,
+      "LineHeight": 0.971
+    },
+    "HeadingMedium": {
+      "Font": {
+        "$font": {
+          "family": "rbxasset://fonts/families/BuilderSans.json",
+          "style": "Enum.FontStyle.Normal",
+          "weight": "Enum.FontWeight.Bold"
+        }
+      },
+      "FontSize": 30.0,
+      "LetterSpacing": -0.01,
+      "LineHeight": 1.067
+    },
+    "HeadingSmall": {
+      "Font": {
+        "$font": {
+          "family": "rbxasset://fonts/families/BuilderSans.json",
+          "style": "Enum.FontStyle.Normal",
+          "weight": "Enum.FontWeight.Bold"
+        }
+      },
+      "FontSize": 25.0,
+      "LetterSpacing": -0.01,
+      "LineHeight": 0.96
+    },
+    "LabelLarge": {
+      "Font": {
+        "$font": {
+          "family": "rbxasset://fonts/families/BuilderSans.json",
+          "style": "Enum.FontStyle.Normal",
+          "weight": "Enum.FontWeight.Medium"
+        }
+      },
+      "FontSize": 20.0,
+      "LetterSpacing": 0.0,
+      "LineHeight": 0.8
+    },
+    "LabelMedium": {
+      "Font": {
+        "$font": {
+          "family": "rbxasset://fonts/families/BuilderSans.json",
+          "style": "Enum.FontStyle.Normal",
+          "weight": "Enum.FontWeight.Medium"
+        }
+      },
+      "FontSize": 18.0,
+      "LetterSpacing": 0.0,
+      "LineHeight": 0.778
+    },
+    "LabelSmall": {
+      "Font": {
+        "$font": {
+          "family": "rbxasset://fonts/families/BuilderSans.json",
+          "style": "Enum.FontStyle.Normal",
+          "weight": "Enum.FontWeight.Medium"
+        }
+      },
+      "FontSize": 15.0,
+      "LetterSpacing": 0.0,
+      "LineHeight": 0.8
+    },
+    "TitleLarge": {
+      "Font": {
+        "$font": {
+          "family": "rbxasset://fonts/families/BuilderSans.json",
+          "style": "Enum.FontStyle.Normal",
+          "weight": "Enum.FontWeight.Bold"
+        }
+      },
+      "FontSize": 20.0,
+      "LetterSpacing": 0.0,
+      "LineHeight": 1.1
+    },
+    "TitleMedium": {
+      "Font": {
+        "$font": {
+          "family": "rbxasset://fonts/families/BuilderSans.json",
+          "style": "Enum.FontStyle.Normal",
+          "weight": "Enum.FontWeight.Bold"
+        }
+      },
+      "FontSize": 18.0,
+      "LetterSpacing": 0.0,
+      "LineHeight": 1.111
+    },
+    "TitleSmall": {
+      "Font": {
+        "$font": {
+          "family": "rbxasset://fonts/families/BuilderSans.json",
+          "style": "Enum.FontStyle.Normal",
+          "weight": "Enum.FontWeight.Bold"
+        }
+      },
+      "FontSize": 15.0,
+      "LetterSpacing": 0.0,
+      "LineHeight": 1.2
+    }
+  }
+}

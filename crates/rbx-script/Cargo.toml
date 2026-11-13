@@ -1,0 +1,12 @@
+[package]
+name = "rbx-script"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+rbx-core = { path = "../rbx-core" }
+rbx-studio = { path = "../rbx-studio" }
+mlua = { version = "0.12", features = ["luau", "vendored", "error-send"] }
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true

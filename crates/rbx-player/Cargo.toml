@@ -1,0 +1,13 @@
+[package]
+name = "rbx-player"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "rustblox-player"
+path = "src/main.rs"
+
+[dependencies]
+rbx-core = { path = "../rbx-core" }
+serde_json = "1"
+anyhow = "1"

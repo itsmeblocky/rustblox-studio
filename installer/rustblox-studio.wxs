@@ -1,0 +1,79 @@
+﻿<!--
+  Rustblox Studio MSI (WiX v4/v5+/v7 authoring).
+  Built by installer/build-installer.ps1 after staging + Qt deployment.
+  Uses the WiX Files element to harvest the staged payload (no heat step required).
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  <?ifndef ProductVersion?>
+    <?define ProductVersion = "0.1.0"?>
+  <?endif?>
+  <?define UpgradeCode = "D2F6C6F1-6B7A-4E5D-9A45-5D1C3B8A1F20"?>
+
+  <Package Name="Rustblox Studio"
+           Language="1033"
+           Version="$(var.ProductVersion)"
+           Manufacturer="Rustblox"
+           UpgradeCode="$(var.UpgradeCode)"
+           Scope="perMachine"
+           Compressed="yes">
+    <SummaryInformation Description="Rustblox Studio Installer" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+    <UIRef Id="WixUI_ErrorProgressText" />
+
+    <Icon Id="RustbloxIcon.exe" SourceFile="$(var.StageDir)\rbx-studio-app.exe" />
+    <Property Id="ARPPRODUCTICON" Value="RustbloxIcon.exe" />
+
+    <Feature Id="ProductFeature" Title="Rustblox Studio" Level="1">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentRef Id="ApplicationShortcut" />
+    </Feature>
+  </Package>
+
+  <Fragment>
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="Rustblox Studio" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="Rustblox Studio" />
+    </StandardDirectory>
+    <StandardDirectory Id="DesktopFolder" />
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(var.StageDir)\**" />
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <Component Id="ApplicationShortcut" Guid="A8E0F4B2-5C3D-4D1E-9F77-2B6E0A1C9D33">
+        <Shortcut Id="StartMenuShortcut"
+                  Name="Rustblox Studio"
+                  Description="Rustblox Studio"
+                  Target="[INSTALLFOLDER]rbx-studio-app.exe"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="RustbloxIcon.exe" />
+        <Shortcut Id="DesktopShortcut"
+                  Directory="DesktopFolder"
+                  Name="Rustblox Studio"
+                  Description="Rustblox Studio"
+                  Target="[INSTALLFOLDER]rbx-studio-app.exe"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="RustbloxIcon.exe" />
+        <RemoveFolder Id="RemoveProgramsFolder" On="uninstall" />
+        <RegistryValue Root="HKCU"
+                       Key="Software\Rustblox\RustbloxStudio"
+                       Name="installed"
+                       Type="integer"
+                       Value="1"
+                       KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+</Wix>

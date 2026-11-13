@@ -1,0 +1,27 @@
+﻿# Build / tooling / caches
+/target/
+/.tools/
+/.wix/
+
+# Generated installer artifacts
+/installer/staging/
+/installer/out/
+/installer/obj/
+/installer/assets.wxs
+/installer/rustblox-studio.v3.wxs
+
+# Logs and local scratch
+*.log
+aqtinstall.log
+
+# Local/large working files
+/rustbloxlogo.psd
+
+# Private OAuth credentials - only the folder's own .gitignore is tracked.
+secrets/*
+!secrets/.gitignore
+
+# Bundled/generated data (fetched separately)
+assets/studio/api/API-Dump.json
+
+

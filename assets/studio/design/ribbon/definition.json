@@ -1,0 +1,271 @@
+{
+  "meta": {
+    "source": "user-provided tab breakdown transcribed against Pywinauto-captured Roblox Studio ribbon screenshots",
+    "captured_tabs": [
+      "assets/studio/reference/ribbon_Home.png",
+      "assets/studio/reference/ribbon_Avatar.png",
+      "assets/studio/reference/ribbon_UI.png",
+      "assets/studio/reference/ribbon_Script.png",
+      "assets/studio/reference/ribbon_Model.png"
+    ],
+    "notes": [
+      "Groups are separated by [d] in the source breakdown and are ordered left-to-right.",
+      "Control order within each group follows the source breakdown.",
+      "Icon keys are best-effort mappings into assets/studio/icons/manifest.json; verify/refine against the reference PNGs.",
+      "Plugins tab is intentionally omitted here (user plugins are dynamic and must not be hardcoded). The tab shell/order comes from RibbonLayout.json.",
+      "Dropdown/split-button affordances are inferred from labels like [d] context and common Studio behavior; confirm visually."
+    ]
+  },
+  "tab_order": ["Home", "Avatar", "UI", "Script", "Model", "Plugins"],
+  "tabs": [
+    {
+      "id": "Home",
+      "label_key": "Studio.Ribbon.Plugin.Tab_Home",
+      "groups": [
+        {
+          "id": "tools",
+          "controls": [
+            { "id": "Select", "label": "Select", "icon": "Shared/Ribbon/Dark/Medium/RibbonSelect.png", "kind": "tool" },
+            { "id": "Move", "label": "Move", "icon": "Shared/Ribbon/Dark/Medium/RibbonMove.png", "kind": "tool" },
+            { "id": "Scale", "label": "Scale", "icon": "Shared/Ribbon/Dark/Medium/RibbonScale.png", "kind": "tool" },
+            { "id": "Rotate", "label": "Rotate", "icon": "Shared/Ribbon/Dark/Medium/RibbonRotate.png", "kind": "tool" },
+            { "id": "Transform", "label": "Transform", "icon": "Shared/Ribbon/Dark/Medium/RibbonTransform.png", "kind": "tool" }
+          ]
+        },
+        {
+          "id": "transform_options",
+          "controls": [
+            { "id": "Geometric", "label": "Geometric", "icon": "Shared/Ribbon/Dark/Medium/RibbonGeometric.png", "kind": "toggle" },
+            { "id": "SnapToGrid", "label": "Snap to Grid", "detail": "Move/Rotate increments", "icon": "Shared/Ribbon/Dark/Medium/RibbonTransform.png", "icon_candidates": ["Shared/Ribbon/Dark/Medium/RibbonMove.png"], "kind": "toggle_group" }
+          ]
+        },
+        {
+          "id": "insert",
+          "controls": [
+            { "id": "Part", "label": "Part", "icon": "Shared/Ribbon/Dark/Medium/RibbonPart.png", "kind": "split_button" },
+            { "id": "Terrain", "label": "Terrain", "icon": "Shared/Ribbon/Dark/Medium/RibbonTerrain.png", "kind": "button" },
+            { "id": "Character", "label": "Character", "icon": "Shared/Ribbon/Dark/Medium/RibbonCharacter.png", "kind": "button" },
+            { "id": "GUI", "label": "GUI", "icon": "Shared/Ribbon/Dark/Medium/RibbonGUI.png", "kind": "split_button" },
+            { "id": "Script", "label": "Script", "icon": "Shared/Ribbon/Dark/Medium/RibbonScript.png", "kind": "split_button" },
+            { "id": "Import", "label": "Import", "icon": null, "icon_candidates": ["Shared/Ribbon/Dark/Medium/Ribbon3DImport.png", "Shared/Ribbon/Dark/Medium/RibbonImportQueue.png"], "kind": "split_button" }
+          ]
+        },
+        {
+          "id": "edit",
+          "controls": [
+            { "id": "Material", "label": "Material", "icon": "Shared/Ribbon/Dark/Medium/RibbonMaterial.png", "kind": "picker" },
+            { "id": "Color", "label": "Color", "icon": "Shared/Ribbon/Dark/Medium/RibbonColor.png", "kind": "picker" },
+            { "id": "Group", "label": "Group", "icon": "Shared/Ribbon/Dark/Medium/RibbonGroup.png", "kind": "button" },
+            { "id": "Lock", "label": "Lock", "label_key": "Studio.Ribbon.Plugin.Lock", "icon": "Shared/Ribbon/Dark/Medium/RibbonLock.png", "kind": "toggle" },
+            { "id": "Anchor", "label": "Anchor", "label_key": "Studio.Ribbon.Plugin.Setting_Anchor", "icon": "Shared/Ribbon/Dark/Medium/RibbonAnchor.png", "kind": "toggle" }
+          ]
+        },
+        {
+          "id": "panels",
+          "controls": [
+            { "id": "Explorer", "label": "Explorer", "icon": "Shared/Ribbon/Dark/Medium/RibbonExplorer.png", "kind": "toggle_panel" },
+            { "id": "Properties", "label": "Properties", "icon": "Shared/Ribbon/Dark/Medium/RibbonProperties.png", "kind": "toggle_panel" },
+            { "id": "Toolbox", "label": "Toolbox", "icon": "Shared/Ribbon/Dark/Medium/RibbonToolbox.png", "kind": "toggle_panel" },
+            { "id": "Assets", "label": "Assets", "icon": "Shared/Ribbon/Dark/Medium/RibbonAssetManager.png", "kind": "toggle_panel" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Avatar",
+      "label_key": "Studio.Ribbon.Plugin.Tab_Avatar",
+      "groups": [
+        {
+          "id": "tools",
+          "controls": [
+            { "id": "Select", "label": "Select", "icon": "Shared/Ribbon/Dark/Medium/RibbonSelect.png", "kind": "tool" },
+            { "id": "Move", "label": "Move", "icon": "Shared/Ribbon/Dark/Medium/RibbonMove.png", "kind": "tool" },
+            { "id": "Scale", "label": "Scale", "icon": "Shared/Ribbon/Dark/Medium/RibbonScale.png", "kind": "tool" },
+            { "id": "Rotate", "label": "Rotate", "icon": "Shared/Ribbon/Dark/Medium/RibbonRotate.png", "kind": "tool" },
+            { "id": "Transform", "label": "Transform", "icon": "Shared/Ribbon/Dark/Medium/RibbonTransform.png", "kind": "tool" }
+          ]
+        },
+        {
+          "id": "transform_options",
+          "controls": [
+            { "id": "Geometric", "label": "Geometric", "icon": "Shared/Ribbon/Dark/Medium/RibbonGeometric.png", "kind": "toggle" },
+            { "id": "SnapToGrid", "label": "Snap to Grid", "detail": "Move/Rotate increments", "icon": "Shared/Ribbon/Dark/Medium/RibbonTransform.png", "icon_candidates": ["Shared/Ribbon/Dark/Medium/RibbonMove.png"], "kind": "toggle_group" }
+          ]
+        },
+        {
+          "id": "avatar",
+          "controls": [
+            { "id": "Settings", "label": "Settings", "icon": "Shared/Ribbon/Dark/Medium/RibbonAvatarSettings.png", "kind": "button" }
+          ]
+        },
+        {
+          "id": "avatar_tools",
+          "controls": [
+            { "id": "Character", "label": "Character", "icon": "Shared/Ribbon/Dark/Medium/RibbonCharacter.png", "kind": "button" },
+            { "id": "Setup", "label": "Setup", "icon": "Shared/Ribbon/Dark/Medium/RibbonSetup.png", "kind": "button" },
+            { "id": "Accessory", "label": "Accessory", "icon": "Shared/Ribbon/Dark/Medium/RibbonAccessory.png", "kind": "split_button" },
+            { "id": "Adaptive", "label": "Adaptive...", "icon": "Shared/Ribbon/Dark/Medium/RibbonLayered.png", "icon_candidates": ["Shared/Ribbon/Dark/Medium/RibbonAccessory.png"], "kind": "split_button" },
+            { "id": "UGCValidation", "label": "UGC Validation", "icon": "Shared/Ribbon/Dark/Medium/RibbonUGCValidation.png", "kind": "button" }
+          ]
+        },
+        {
+          "id": "animation",
+          "controls": [
+            { "id": "ClipEditor", "label": "Clip Editor", "icon": "Shared/Ribbon/Dark/Medium/RibbonAnimation.png", "kind": "button" },
+            { "id": "GraphEditor", "label": "Graph Editor", "icon": "Shared/WidgetIcons/Dark/Standard/AnimationEditor.png", "kind": "button" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "UI",
+      "label_key": "Studio.Ribbon.Plugin.Tab_UI",
+      "groups": [
+        {
+          "id": "insert",
+          "controls": [
+            { "id": "GUI", "label": "GUI", "label_key": "Studio.Ribbon.Plugin.Setting_GUI", "icon": "Shared/Ribbon/Dark/Medium/RibbonGUI.png", "kind": "split_button" },
+            { "id": "Frame", "label": "Frame", "label_key": "Studio.Ribbon.Plugin.Setting_Frame", "icon": "Shared/Ribbon/Dark/Medium/RibbonFrame.png", "kind": "split_button" },
+            { "id": "Label", "label": "Label", "label_key": "Studio.Ribbon.Plugin.Setting_Label", "icon": "Shared/Ribbon/Dark/Medium/RibbonTextLabel.png", "kind": "split_button" },
+            { "id": "Input", "label": "Input", "label_key": "Studio.Ribbon.Plugin.Setting_Input", "icon": "Shared/Ribbon/Dark/Medium/RibbonTextButton.png", "kind": "split_button" },
+            { "id": "Appearance", "label": "Appearance", "label_key": "Studio.Ribbon.Plugin.Setting_Appearance", "icon": "Shared/Ribbon/Dark/Medium/RibbonUIStroke.png", "icon_candidates": ["Shared/Ribbon/Dark/Medium/RibbonUICorner.png", "Shared/Ribbon/Dark/Medium/RibbonUIGradient.png"], "kind": "split_button" },
+            { "id": "Layout", "label": "Layout", "label_key": "Studio.Ribbon.Plugin.Setting_Layout", "icon": "Shared/Ribbon/Dark/Medium/RibbonUIListLayout.png", "icon_candidates": ["Shared/Ribbon/Dark/Medium/RibbonUIGridLayout.png", "Shared/Ribbon/Dark/Medium/RibbonUIPageLayout.png"], "kind": "split_button" },
+            { "id": "Constraint", "label": "Constraint", "label_key": "Studio.Ribbon.Plugin.Setting_UIConstraint", "icon": "Shared/Ribbon/Dark/Medium/RibbonUISizeConstraint.png", "icon_candidates": ["Shared/Ribbon/Dark/Medium/RibbonUIAspectRatioConstraint.png"], "kind": "split_button" }
+          ]
+        },
+        {
+          "id": "style",
+          "controls": [
+            { "id": "StyleEditor", "label": "Style Editor", "icon": "Shared/Ribbon/Dark/Medium/RibbonStyleEditor.png", "kind": "toggle_panel" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Script",
+      "label_key": "Studio.Ribbon.Plugin.Tab_Script",
+      "groups": [
+        {
+          "id": "navigation",
+          "controls": [
+            { "id": "Back", "label": "Back", "icon": "Shared/Ribbon/Dark/Medium/RibbonBack.png", "kind": "button" },
+            { "id": "Forward", "label": "Fwd", "icon": "Shared/Ribbon/Dark/Medium/RibbonFwd.png", "icon_candidates": ["Shared/Navigation/Dark/Standard/Fwd.png"], "kind": "button" }
+          ]
+        },
+        {
+          "id": "insert",
+          "controls": [
+            { "id": "Script", "label": "Script", "label_key": "Studio.Ribbon.Plugin.Setting_Script", "icon": "Shared/Ribbon/Dark/Medium/RibbonScript.png", "kind": "split_button" }
+          ]
+        },
+        {
+          "id": "edit",
+          "controls": [
+            { "id": "Format", "label": "Format", "label_key": "Studio.Ribbon.Plugin.Setting_Format", "icon": "Shared/Ribbon/Dark/Medium/RibbonFormatSelection.png", "icon_candidates": ["Shared/Ribbon/Dark/Medium/RibbonFormatDocument.png"], "kind": "button" },
+            { "id": "Find", "label": "Find", "label_key": "Studio.Ribbon.Plugin.Setting_Find", "icon": "Shared/Ribbon/Dark/Medium/RibbonFind.png", "kind": "button" },
+            { "id": "GoToLine", "label": "Go to Line", "icon": "Shared/Ribbon/Dark/Medium/RibbonGoToLine.png", "kind": "button" }
+          ]
+        },
+        {
+          "id": "panels",
+          "controls": [
+            { "id": "Command", "label": "Command", "icon": "Shared/Ribbon/Dark/Medium/RibbonCommand.png", "kind": "toggle_panel" },
+            { "id": "Output", "label": "Output", "icon": "Shared/Ribbon/Dark/Medium/RibbonOutput.png", "kind": "toggle_panel" }
+          ]
+        },
+        {
+          "id": "debugger",
+          "controls": [
+            { "id": "Breakpoints", "label": "Breakpoints", "icon": "Shared/Ribbon/Dark/Medium/RibbonBreakpoints.png", "kind": "toggle_panel" },
+            { "id": "CallStack", "label": "Call Stack", "icon": "Shared/Ribbon/Dark/Medium/RibbonCallStack.png", "kind": "toggle_panel" },
+            { "id": "Watch", "label": "Watch", "icon": "Shared/Ribbon/Dark/Medium/RibbonWatch.png", "kind": "toggle_panel" }
+          ]
+        },
+        {
+          "id": "analysis",
+          "controls": [
+            { "id": "Analysis", "label": "Analysis", "icon": "Shared/Ribbon/Dark/Medium/RibbonAnalysis.png", "kind": "toggle_panel" },
+            { "id": "ScriptActivity", "label": "Script Activity", "icon": "Shared/Ribbon/Dark/Medium/RibbonPerformance.png", "kind": "toggle_panel" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Model",
+      "label_key": "Studio.Ribbon.Plugin.Tab_Model",
+      "groups": [
+        {
+          "id": "tools",
+          "controls": [
+            { "id": "Select", "label": "Select", "icon": "Shared/Ribbon/Dark/Medium/RibbonSelect.png", "kind": "tool" },
+            { "id": "Move", "label": "Move", "icon": "Shared/Ribbon/Dark/Medium/RibbonMove.png", "kind": "tool" },
+            { "id": "Scale", "label": "Scale", "icon": "Shared/Ribbon/Dark/Medium/RibbonScale.png", "kind": "tool" },
+            { "id": "Rotate", "label": "Rotate", "icon": "Shared/Ribbon/Dark/Medium/RibbonRotate.png", "kind": "tool" },
+            { "id": "Transform", "label": "Transform", "icon": "Shared/Ribbon/Dark/Medium/RibbonTransform.png", "kind": "tool" }
+          ]
+        },
+        {
+          "id": "transform_options",
+          "controls": [
+            { "id": "Geometric", "label": "Geometric", "icon": "Shared/Ribbon/Dark/Medium/RibbonGeometric.png", "kind": "toggle" },
+            { "id": "SnapToGrid", "label": "Snap to Grid", "detail": "Move/Rotate increments", "icon": "Shared/Ribbon/Dark/Medium/RibbonTransform.png", "icon_candidates": ["Shared/Ribbon/Dark/Medium/RibbonMove.png"], "kind": "toggle_group" }
+          ]
+        },
+        {
+          "id": "pivot",
+          "controls": [
+            { "id": "Pivot", "label": "Pivot", "icon": "Shared/Ribbon/Dark/Medium/RibbonEditPivot.png", "kind": "toggle" },
+            { "id": "Reset", "label": "Reset", "icon": "Shared/Ribbon/Dark/Medium/RibbonResetPivot.png", "kind": "split_button" }
+          ]
+        },
+        {
+          "id": "insert",
+          "controls": [
+            { "id": "Part", "label": "Part", "icon": "Shared/Ribbon/Dark/Medium/RibbonPart.png", "kind": "split_button" },
+            { "id": "Effect", "label": "Effect", "label_key": "Studio.Ribbon.Plugin.Setting_Effect", "icon": "Shared/Ribbon/Dark/Medium/RibbonEffect_ParticleEmitter.png", "icon_candidates": ["Shared/Ribbon/Dark/Medium/RibbonEffect_PointLight.png", "Shared/Ribbon/Dark/Medium/RibbonEffect_Highlight.png"], "kind": "split_button" }
+          ]
+        },
+        {
+          "id": "physics",
+          "controls": [
+            { "id": "Attachment", "label": "Attachment", "label_key": "Studio.Ribbon.Plugin.Setting_Attachment", "icon": "Shared/Ribbon/Dark/Medium/RibbonAttachment.png", "kind": "button" },
+            { "id": "Constraint", "label": "Constraint", "label_key": "Studio.Ribbon.Plugin.Setting_Constraint", "icon": "Shared/Ribbon/Dark/Medium/RibbonRigidConstraint.png", "icon_candidates": ["Shared/Ribbon/Dark/Medium/RibbonHingeConstraint.png", "Shared/Ribbon/Dark/Medium/RibbonBallSocketConstraint.png"], "kind": "split_button" },
+            { "id": "Weld", "label": "Weld", "label_key": "Studio.Ribbon.Plugin.Setting_Weld", "icon": "Shared/Ribbon/Dark/Medium/RibbonWeldConstraint.png", "kind": "button" }
+          ]
+        },
+        {
+          "id": "edit",
+          "controls": [
+            { "id": "Material", "label": "Material", "icon": "Shared/Ribbon/Dark/Medium/RibbonMaterial.png", "kind": "picker" },
+            { "id": "Color", "label": "Color", "icon": "Shared/Ribbon/Dark/Medium/RibbonColor.png", "kind": "picker" },
+            { "id": "Texture", "label": "Texture", "icon": "Shared/Ribbon/Dark/Medium/RibbonMeshTextureTool.png", "kind": "button" },
+            { "id": "Group", "label": "Group", "icon": "Shared/Ribbon/Dark/Medium/RibbonGroup.png", "kind": "button" },
+            { "id": "Lock", "label": "Lock", "icon": "Shared/Ribbon/Dark/Medium/RibbonLock.png", "kind": "toggle" },
+            { "id": "Anchor", "label": "Anchor", "icon": "Shared/Ribbon/Dark/Medium/RibbonAnchor.png", "kind": "toggle" }
+          ]
+        },
+        {
+          "id": "align",
+          "controls": [
+            { "id": "Align", "label": "Align", "icon": "Shared/Ribbon/Dark/Medium/RibbonAlignTool.png", "kind": "button" }
+          ]
+        },
+        {
+          "id": "solid_modeling",
+          "controls": [
+            { "id": "Union", "label": "Union", "icon": "Shared/Ribbon/Dark/Medium/RibbonUnionOperation.png", "kind": "button" },
+            { "id": "Intersect", "label": "Intersect", "icon": "Shared/Ribbon/Dark/Medium/RibbonIntersectOperation.png", "kind": "button" },
+            { "id": "Separate", "label": "Separate", "icon": "Shared/Ribbon/Dark/Medium/RibbonSeparateOperation.png", "kind": "button" },
+            { "id": "Negate", "label": "Negate", "icon": "Shared/Ribbon/Dark/Medium/RibbonNegateOperation.png", "kind": "button" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Plugins",
+      "label_key": "Studio.Ribbon.Plugin.Tab_Plugins",
+      "dynamic": true,
+      "groups": []
+    }
+  ]
+}

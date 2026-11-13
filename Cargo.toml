@@ -1,0 +1,39 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/rbx-core",
+    "crates/rbx-player",
+    "crates/rbx-studio",
+    "crates/rbx-studio-app",
+    "crates/rbx-render",
+    "crates/rbx-script",
+]
+default-members = ["crates/rbx-player"]
+
+[workspace.package]
+edition = "2021"
+version = "0.1.0"
+authors = ["Rustblox"]
+
+[workspace.dependencies]
+rbx_binary = "3"
+rbx_xml = "3"
+rbx_types = "3"
+rbx_dom_weak = "4"
+# Roblox `.mesh` (MeshPart/SpecialMesh) geometry, used by the asset cache inserts.
+rbx_mesh = { version = "0.8", default-features = false, features = ["mesh", "mesh-v1"] }
+flate2 = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+glam = "0.29"
+eframe = { version = "0.31", default-features = false, features = ["glow", "default_fonts"] }
+egui = "0.31"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "bmp", "webp"] }
+xml-rs = "0.8"
+
+# Roblox web access (public Toolbox metadata + OAuth 2.0)
+ureq = "2"
+sha2 = "0.10"
+base64 = "0.22"
+rand = "0.8"

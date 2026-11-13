@@ -1,0 +1,19 @@
+[package]
+name = "rbx-core"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "rbx-inspect"
+path = "src/bin/rbx_inspect.rs"
+
+[dependencies]
+rbx_binary.workspace = true
+rbx_xml.workspace = true
+rbx_types.workspace = true
+rbx_dom_weak.workspace = true
+rbx_mesh.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+glam.workspace = true

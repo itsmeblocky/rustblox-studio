@@ -1,0 +1,51 @@
+[package]
+name = "rbx-studio"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+name = "rbx_studio"
+path = "src/lib.rs"
+
+[[bin]]
+name = "dump-icons"
+path = "src/bin/dump_icons.rs"
+
+[[bin]]
+name = "extract-tokens"
+path = "src/bin/extract_tokens.rs"
+
+[[bin]]
+name = "dump-theme"
+path = "src/bin/dump_theme.rs"
+
+[[bin]]
+name = "dump-layout"
+path = "src/bin/dump_layout.rs"
+
+[[bin]]
+name = "dump-strings"
+path = "src/bin/dump_strings.rs"
+
+[[bin]]
+name = "dump-ribbon"
+path = "src/bin/dump_ribbon.rs"
+
+[[bin]]
+name = "fetch-api-dump"
+path = "src/bin/fetch_api_dump.rs"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+xml-rs.workspace = true
+
+# UI shell (planned): not required by bins yet.
+eframe = { workspace = true, optional = true }
+egui = { workspace = true, optional = true }
+image = { workspace = true, optional = true }
+
+[features]
+default = []
+ui = ["dep:eframe", "dep:egui", "dep:image"]
