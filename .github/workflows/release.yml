@@ -1,0 +1,78 @@
+name: Release
+
+# Push a tag like `v0.2.0` to publish a GitHub Release. The app's updater polls
+# `releases/latest` and compares the tag against the version in Cargo.toml.
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to build (for example 0.2.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.8.3"
+          arch: "win64_msvc2022_64"
+          cache: true
+
+      - name: Install WiX
+        shell: pwsh
+        run: dotnet tool install --global wix
+
+      - name: Resolve version
+        id: vars
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $version = "${{ github.event.inputs.version }}"
+          } else {
+            $version = $tag.TrimStart("v")
+          }
+          if ([string]::IsNullOrWhiteSpace($version)) { throw "Could not resolve a version number." }
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "tag=v$version" >> $env:GITHUB_OUTPUT
+
+      - name: Build app and MSI
+        shell: pwsh
+        env:
+          QTDIR: ${{ env.QT_ROOT_DIR }}
+        run: |
+          ./installer/build-installer.ps1 -Configuration release -Version "${{ steps.vars.outputs.version }}" -QtDir "$env:QT_ROOT_DIR"
+          if (!(Test-Path "installer\out\RustbloxStudio-${{ steps.vars.outputs.version }}.msi")) {
+            throw "MSI was not produced."
+          }
+
+      - name: Package portable build
+        shell: pwsh
+        run: |
+          $name = "RustbloxStudio-${{ steps.vars.outputs.version }}-windows-x64.exe"
+          Copy-Item "target\release\rbx-studio-app.exe" "installer\out\$name"
+          Get-ChildItem installer\out | Format-Table Name, Length
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.vars.outputs.tag }}
+          name: Rustblox Studio ${{ steps.vars.outputs.version }}
+          generate_release_notes: true
+          files: |
+            installer/out/RustbloxStudio-${{ steps.vars.outputs.version }}.msi
+            installer/out/RustbloxStudio-${{ steps.vars.outputs.version }}-windows-x64.exe

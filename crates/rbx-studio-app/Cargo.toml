@@ -22,6 +22,9 @@ base64.workspace = true
 rand.workspace = true
 flate2.workspace = true
 image.workspace = true
+rbx_xml.workspace = true
+rbx_dom_weak.workspace = true
+rbx_types.workspace = true
 
 # Qt UI shell (bootstrap). Requires Qt dev (Qt5/Qt6) discoverable by qmetaobject-rs.
 # Current Qt install attempt (background): .tools/Qt/6.8.3/msvc2022_64

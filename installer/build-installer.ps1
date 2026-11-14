@@ -34,6 +34,9 @@ New-Item -ItemType Directory -Force -Path (Join-Path $stage "assets") | Out-Null
 
 Write-Host "==> Staging executable and assets"
 Copy-Item $exeSrc (Join-Path $stage "rbx-studio-app.exe") -Force
+# Force the customizable Qt Quick Controls Basic style (the native Windows
+# style ignores our dark-theme menu/scrollbar chrome).
+Copy-Item (Join-Path $root "installer\qtquickcontrols2.conf") (Join-Path $stage "qtquickcontrols2.conf") -Force
 Copy-Item (Join-Path $root "assets\*") (Join-Path $stage "assets") -Recurse -Force
 # Secrets/credentials are per-user and must not be bundled
 if (Test-Path (Join-Path $stage "assets\..\secrets")) { }

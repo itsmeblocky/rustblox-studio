@@ -457,7 +457,7 @@ pub fn resolve_meshes(parts: &mut [rbx_core::Part]) -> (usize, usize) {
     (resolved, failed)
 }
 
-fn parse_asset_id(uri: &str) -> Option<i64> {
+pub(crate) fn parse_asset_id(uri: &str) -> Option<i64> {
     let uri = uri.trim();
     if uri.is_empty() {
         return None;

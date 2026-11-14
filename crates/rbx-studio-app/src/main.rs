@@ -1,4 +1,4 @@
-//! Rustblox Studio — Qt UI shell (bootstrap).
+﻿//! Rustblox Studio â€” Qt UI shell (bootstrap).
 //!
 //! Requires Qt development libraries to be installed and discoverable.
 //! Qt 6.8.3 (msvc2022_64) is expected at `.tools/Qt/6.8.3/msvc2022_64` when
@@ -11,10 +11,12 @@
 //!   QML2_IMPORT_PATH = %QTDIR%\qml
 
 mod asset_cache;
+mod asset_resolver;
 mod insert;
 mod roblox_api;
+mod updater;
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use qmetaobject::prelude::*;
 use rbx_core::Scene;
 use rbx_render::{
@@ -28,11 +30,159 @@ use rbx_studio::{
 };
 use serde_json::{json, Value};
 use std::cell::RefCell;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
+
+fn export_scene_rbxlx(scene: &rbx_core::Scene, path: &Path) -> Result<()> {
+    use rbx_dom_weak::types::{
+        CFrame as RbxCFrame, Color3 as RbxColor3, Enum as RbxEnum, Matrix3 as RbxMatrix3,
+        Variant as RbxVariant, Vector3 as RbxVector3,
+    };
+    use rbx_dom_weak::{InstanceBuilder, WeakDom};
+
+    let mut dom = WeakDom::new(InstanceBuilder::new("DataModel"));
+
+    // Minimal services for a place file.
+    let services = [
+        "Workspace",
+        "Players",
+        "Lighting",
+        "ReplicatedStorage",
+        "ServerStorage",
+        "ServerScriptService",
+        "StarterGui",
+        "StarterPack",
+        "StarterPlayer",
+        "SoundService",
+        "Chat",
+        "Teams",
+    ];
+    let mut service_refs = std::collections::HashMap::new();
+    for s in services {
+        let r = dom.insert(dom.root_ref(), InstanceBuilder::new(s).with_name(s));
+        service_refs.insert(s.to_string(), r);
+    }
+
+    let workspace_ref = *service_refs.get("Workspace").ok_or_else(|| anyhow!("Workspace service missing"))?;
+
+    fn material_enum(material: &str) -> u32 {
+        // Roblox Material enum values (common subset).
+        match material {
+            "Plastic" => 256,
+            "SmoothPlastic" => 1280,
+            "Wood" => 512,
+            "WoodPlanks" => 528,
+            "Slate" => 800,
+            "Concrete" => 816,
+            "Grass" => 1284,
+            "Sand" => 1296,
+            "Brick" => 848,
+            "Cobblestone" => 880,
+            "Granite" => 832,
+            "Marble" => 788,
+            "Metal" => 1088,
+            "DiamondPlate" => 1056,
+            "CorrodedMetal" => 1040,
+            "Foil" => 1072,
+            "Fabric" => 1312,
+            "Neon" => 288,
+            "Glass" => 1568,
+            "Ice" => 1536,
+            "ForceField" => 1584,
+            "Pebble" => 896,
+            "Asphalt" => 1376,
+            "Basalt" => 788, // fallback-ish
+            "Rock" => 912,
+            "CrackedLava" => 804,
+            "Ground" => 1360,
+            "Snow" => 1552,
+            "Sandstone" => 912,
+            "Mud" => 1344,
+            "LeafyGrass" => 1284,
+            "Salt" => 1392,
+            "Limestone" => 820,
+            "Pavement" => 836,
+            _ => 256,
+        }
+    }
+
+    for part in &scene.parts {
+        let cf = part.cframe;
+        let rbx_cf = RbxCFrame::new(
+            RbxVector3::new(cf.position.x, cf.position.y, cf.position.z),
+            RbxMatrix3::new(
+                RbxVector3::new(cf.rotation[0][0], cf.rotation[0][1], cf.rotation[0][2]),
+                RbxVector3::new(cf.rotation[1][0], cf.rotation[1][1], cf.rotation[1][2]),
+                RbxVector3::new(cf.rotation[2][0], cf.rotation[2][1], cf.rotation[2][2]),
+            ),
+        );
+        let color = RbxColor3::new(part.color[0], part.color[1], part.color[2]);
+        let size = RbxVector3::new(part.size.x, part.size.y, part.size.z);
+
+        let mut builder = InstanceBuilder::new(part.class_name.clone())
+            .with_name(part.name.clone())
+            .with_property("Anchored", RbxVariant::Bool(false))
+            .with_property("CanCollide", RbxVariant::Bool(true))
+            .with_property("Size", RbxVariant::Vector3(size))
+            .with_property("CFrame", RbxVariant::CFrame(rbx_cf))
+            .with_property("Color", RbxVariant::Color3(color))
+            .with_property("Transparency", RbxVariant::Float32(part.transparency))
+            .with_property("Reflectance", RbxVariant::Float32(part.reflectance))
+            .with_property("CastShadow", RbxVariant::Bool(part.cast_shadow))
+            .with_property("Material", RbxVariant::Enum(RbxEnum::from_u32(material_enum(&part.material))));
+
+        // Basic Part shape
+        if part.class_name == "Part" {
+            let shape = match part.shape {
+                rbx_core::PartShape::Ball => 0u32,
+                rbx_core::PartShape::Cylinder => 2u32,
+                _ => 1u32, // Block (and wedge shapes are typically WedgePart instances)
+            };
+            builder = builder.with_property("Shape", RbxVariant::Enum(RbxEnum::from_u32(shape)));
+        }
+
+        dom.insert(workspace_ref, builder);
+    }
+
+    // Apply basic Lighting settings if present.
+    if let Some(lighting_ref) = service_refs.get("Lighting").copied() {
+        let lighting = &scene.lighting;
+        if let Some(inst) = dom.get_by_ref_mut(lighting_ref) {
+            inst.properties.insert(rbx_dom_weak::ustr("Ambient"), RbxVariant::Color3(RbxColor3::new(lighting.ambient[0], lighting.ambient[1], lighting.ambient[2])));
+            inst.properties.insert(rbx_dom_weak::ustr("Brightness"), RbxVariant::Float32(lighting.brightness));
+            inst.properties.insert(rbx_dom_weak::ustr("ClockTime"), RbxVariant::Float32(lighting.clock_time));
+        }
+        // Sky (if any) as child of Lighting
+        if let Some(sky) = &scene.sky {
+            let mut sky_builder = InstanceBuilder::new("Sky").with_name("Sky");
+            let set = |b: InstanceBuilder, k: &str, v: &str| -> InstanceBuilder {
+                if v.is_empty() { b } else { b.with_property(k, RbxVariant::String(v.to_string())) }
+            };
+            sky_builder = set(sky_builder, "SkyboxBk", &sky.skybox_bk);
+            sky_builder = set(sky_builder, "SkyboxDn", &sky.skybox_dn);
+            sky_builder = set(sky_builder, "SkyboxFt", &sky.skybox_ft);
+            sky_builder = set(sky_builder, "SkyboxLf", &sky.skybox_lf);
+            sky_builder = set(sky_builder, "SkyboxRt", &sky.skybox_rt);
+            sky_builder = set(sky_builder, "SkyboxUp", &sky.skybox_up);
+            sky_builder = sky_builder
+                .with_property("CelestialBodiesShown", RbxVariant::Bool(sky.celestial_bodies_shown))
+                .with_property("StarCount", RbxVariant::Int32(sky.star_count.max(0.0) as i32))
+                .with_property("SunAngularSize", RbxVariant::Float32(sky.sun_angular_size))
+                .with_property("MoonAngularSize", RbxVariant::Float32(sky.moon_angular_size));
+            dom.insert(lighting_ref, sky_builder);
+        }
+    }
+
+    // Write top-level children of DataModel as place contents.
+    let root = dom.root();
+    let top_level: Vec<_> = root.children().to_vec();
+    let mut file = std::fs::File::create(path).with_context(|| format!("create {}", path.display()))?;
+    rbx_xml::to_writer_default(&mut file, &dom, &top_level)?;
+    Ok(())
+}
 
 fn write_bmp_rgba(path: &Path, w: u32, h: u32, rgba: &[u8]) -> Result<()> {
     if let Some(parent) = path.parent() { std::fs::create_dir_all(parent)?; }
@@ -98,7 +248,189 @@ struct AsyncState {
     place_status: String,
     place_busy: bool,
     place_result: Option<PendingPlace>,
+    /// Incremented whenever an asset reference finishes resolving.
+    asset_gen: u64,
+    /// Asset references waiting for the single background resolver thread.
+    asset_jobs: VecDeque<AssetJob>,
+    /// Finished resolutions waiting for the GUI thread to attach them.
+    asset_results: Vec<PendingAsset>,
+    /// `true` while the resolver thread is draining `asset_jobs`.
+    asset_worker_busy: bool,
+    /// GitHub auto-updater progress (check ��' download ��' ready).
+    update: UpdateState,
 }
+
+/// Everything the update screen needs, written by the GitHub worker thread and
+/// mirrored into Qt properties by `StudioApp::sync_update`.
+#[derive(Default)]
+struct UpdateState {
+    /// Bumped on every visible change so the GUI thread only repaints once.
+    gen: u64,
+    /// `true` when the update screen should cover the window.
+    visible: bool,
+    /// `checking` ��' `downloading` ��' `ready`, or `current` / `error`.
+    stage: String,
+    status: String,
+    version: String,
+    notes: String,
+    page_url: String,
+    /// 0..1 download progress (`-1` when unknown).
+    progress: f64,
+    busy: bool,
+    /// Downloaded package waiting for "Restart and Update".
+    package: Option<PathBuf>,
+    kind: Option<updater::PackageKind>,
+}
+
+/// One `rbxassetid://` reference queued for background resolution.
+struct AssetJob {
+    /// Explorer path of the instance that referenced the asset.
+    target: String,
+    /// Property the reference was typed into (`TextureID`, `MeshId`, ...).
+    property: String,
+    uri: String,
+    hint: asset_cache::Kind,
+    /// Place generation, so a late result never lands on a different place.
+    epoch: u64,
+}
+
+/// A finished asset resolution waiting for the GUI thread.
+struct PendingAsset {
+    target: String,
+    property: String,
+    uri: String,
+    epoch: u64,
+    result: std::result::Result<asset_resolver::Resolved, String>,
+}
+
+/// Drains the shared asset queue until it is empty. Only one thread runs at a
+/// time (guarded by `asset_worker_busy`), so bursts of properties/place loads
+/// do not spawn a thread per reference.
+fn run_asset_worker(shared: Arc<Mutex<AsyncState>>) {
+    loop {
+        let job = {
+            let Ok(mut state) = shared.lock() else { return };
+            match state.asset_jobs.pop_front() {
+                Some(job) => job,
+                None => {
+                    state.asset_worker_busy = false;
+                    return;
+                }
+            }
+        };
+        let result = asset_resolver::resolve(&job.uri, job.hint).map_err(|e| format!("{e:#}"));
+        let Ok(mut state) = shared.lock() else { return };
+        state.asset_results.push(PendingAsset {
+            target: job.target,
+            property: job.property,
+            uri: job.uri,
+            epoch: job.epoch,
+            result,
+        });
+        state.asset_gen = state.asset_gen.wrapping_add(1);
+    }
+}
+
+/// Checks GitHub Releases, then (when a newer build exists) downloads the
+/// package while keeping `AsyncState::update` up to date. Runs on a worker
+/// thread; the GUI thread mirrors the result through `sync_update`.
+fn run_update_worker(shared: Arc<Mutex<AsyncState>>, manual: bool) {
+    let current = updater::current_version();
+    let release = match updater::check() {
+        Ok(release) => release,
+        Err(e) => {
+            let Ok(mut state) = shared.lock() else { return };
+            let update = &mut state.update;
+            update.busy = false;
+            update.stage = "error".to_string();
+            update.status = format!("{e:#}");
+            update.visible = manual;
+            update.gen = update.gen.wrapping_add(1);
+            return;
+        }
+    };
+
+    {
+        let Ok(mut state) = shared.lock() else { return };
+        let update = &mut state.update;
+        update.version = release.version.clone();
+        update.notes = release.notes.clone();
+        update.page_url = release.page_url.clone();
+        if !updater::is_newer(&release.version, &current) {
+            update.stage = "current".to_string();
+            update.status = format!("Rustblox Studio {current} is up to date.");
+            update.progress = 1.0;
+            update.busy = false;
+            update.visible = manual;
+            update.gen = update.gen.wrapping_add(1);
+            return;
+        }
+        // A newer build exists: the update screen takes over the window.
+        update.visible = true;
+        update.gen = update.gen.wrapping_add(1);
+    }
+
+    let Some((asset, kind)) = updater::pick_asset(&release) else {
+        let Ok(mut state) = shared.lock() else { return };
+        let update = &mut state.update;
+        update.busy = false;
+        update.stage = "error".to_string();
+        update.status = format!(
+            "Release {} has no .exe or .msi package attached.",
+            release.version
+        );
+        update.visible = true;
+        update.gen = update.gen.wrapping_add(1);
+        return;
+    };
+
+    {
+        let Ok(mut state) = shared.lock() else { return };
+        let update = &mut state.update;
+        update.stage = "downloading".to_string();
+        update.status = format!("Downloading {} {}...", kind.label(), release.version);
+        update.progress = 0.0;
+        update.busy = true;
+        update.visible = true;
+        update.gen = update.gen.wrapping_add(1);
+    }
+
+    let label = kind.label();
+    let downloaded = updater::download(&asset, |fraction| {
+        if let Ok(mut state) = shared.lock() {
+            let update = &mut state.update;
+            update.progress = fraction;
+            update.status = format!(
+                "Downloading {label} {:.0}% ({:.1} MB)",
+                fraction * 100.0,
+                (asset.size as f64 * fraction) / 1_048_576.0
+            );
+            update.gen = update.gen.wrapping_add(1);
+        }
+    });
+
+    let Ok(mut state) = shared.lock() else { return };
+    let update = &mut state.update;
+    update.busy = false;
+    match downloaded {
+        Ok(package) => {
+            update.package = Some(package);
+            update.kind = Some(kind);
+            update.stage = "ready".to_string();
+            update.progress = 1.0;
+            update.status = format!(
+                "Rustblox Studio {} is ready. Restart to finish the update.",
+                release.version
+            );
+        }
+        Err(e) => {
+            update.stage = "error".to_string();
+            update.status = format!("Download failed: {e:#}");
+        }
+    }
+    update.gen = update.gen.wrapping_add(1);
+}
+
 
 /// A Toolbox asset that finished downloading on a worker thread and is waiting
 /// for the GUI thread to put it into the scene + Explorer.
@@ -173,7 +505,7 @@ struct StudioApp {
     opencloud_mask: qt_property!(QString; NOTIFY opencloud_changed),
     opencloud_status: qt_property!(QString; NOTIFY opencloud_changed),
     opencloud_changed: qt_signal!(),
-    // Toolbox insert progress/result (download → parse → scene + Explorer)
+    // Toolbox insert progress/result (download â†’ parse â†’ scene + Explorer)
     insert_status: qt_property!(QString; NOTIFY insert_changed),
     insert_busy: qt_property!(bool; NOTIFY insert_changed),
     insert_changed: qt_signal!(),
@@ -191,12 +523,26 @@ struct StudioApp {
     place_changed: qt_signal!(),
     /// Replaces the whole Explorer tree (opening a place).
     explorer_load: qt_signal!(tree: QString),
+    // GitHub auto-updater state (check ��' download ��' restart).
+    update_visible: qt_property!(bool; NOTIFY update_changed),
+    update_stage: qt_property!(QString; NOTIFY update_changed),
+    update_status: qt_property!(QString; NOTIFY update_changed),
+    update_version: qt_property!(QString; NOTIFY update_changed),
+    update_notes: qt_property!(QString; NOTIFY update_changed),
+    update_progress: qt_property!(f64; NOTIFY update_changed),
+    update_busy: qt_property!(bool; NOTIFY update_changed),
+    update_changed: qt_signal!(),
     async_state: Arc<Mutex<AsyncState>>,
     seen_toolbox: RefCell<u64>,
     seen_login: RefCell<u64>,
     seen_insert: RefCell<u64>,
     seen_exp: RefCell<u64>,
     seen_place: RefCell<u64>,
+    seen_asset: RefCell<u64>,
+    seen_update: RefCell<u64>,
+    /// Bumped on every place load so late asset results cannot cross places.
+    place_epoch: RefCell<u64>,
+    current_place_path: RefCell<Option<String>>,
 
     set_active_tab: qt_method!(fn set_active_tab(&mut self, tab: QString) {
         if self.active_tab != tab {
@@ -493,6 +839,92 @@ struct StudioApp {
         }
         self.drain_script_logs();
     }),
+    save_place_file: qt_method!(fn save_place_file(&mut self, save_as: bool) {
+        let place = self.place_name.to_string();
+        let mut path_opt = self.current_place_path.borrow().clone();
+        let wants_new = save_as || path_opt.as_deref().unwrap_or("").is_empty();
+        if wants_new {
+            let safe: String = place
+                .chars()
+                .map(|c| if c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == ' ' { c } else { '_' })
+                .collect();
+            let safe = safe.trim();
+            let name = if safe.is_empty() { "Place".to_string() } else { safe.to_string() };
+            let base = std::env::var_os("USERPROFILE")
+                .map(PathBuf::from)
+                .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
+            let dir = base.join("Documents").join("Rustblox Studio").join("Places");
+            if let Err(e) = std::fs::create_dir_all(&dir) {
+                self.console_output(QString::from("error"), QString::from(format!("Save failed: could not create folder {} ({e})", dir.display())));
+                return;
+            }
+            path_opt = Some(dir.join(format!("{name}.rbxlx")).to_string_lossy().to_string());
+        } else if let Some(p) = path_opt.as_mut() {
+            // Prefer exporting as .rbxlx when saving.
+            let pb = PathBuf::from(&p);
+            if pb.extension().and_then(|e| e.to_str()).map(|e| e.eq_ignore_ascii_case("rustblox.json") || e.eq_ignore_ascii_case("json")).unwrap_or(true) {
+                *p = pb.with_extension("rbxlx").to_string_lossy().to_string();
+            }
+        }
+        let path = path_opt.unwrap_or_else(|| "place.rbxlx".to_string());
+        let scene = self.scene.borrow().clone();
+        match export_scene_rbxlx(&scene, Path::new(&path)) {
+            Ok(()) => {
+                *self.current_place_path.borrow_mut() = Some(path.clone());
+                self.console_output(QString::from("info"), QString::from(format!("Saved place to {path}")));
+            }
+            Err(e) => {
+                self.console_output(QString::from("error"), QString::from(format!("Save failed: {e}")));
+            }
+        }
+    }),
+    open_place_file_path: qt_method!(fn open_place_file_path(&mut self, path_q: QString) {
+        let path = path_q.to_string();
+        let path_trim = path.trim().trim_matches('"').to_string();
+        if path_trim.is_empty() {
+            self.console_output(QString::from("warn"), QString::from("Open failed: no file path provided."));
+            return;
+        }
+        let p = PathBuf::from(&path_trim);
+        let bytes = match std::fs::read(&p) {
+            Ok(b) => b,
+            Err(e) => {
+                self.console_output(QString::from("error"), QString::from(format!("Could not read {}: {e}", p.display())));
+                return;
+            }
+        };
+        let name = p.file_stem().and_then(|s| s.to_str()).unwrap_or("Place").to_string();
+        let lower = path_trim.to_ascii_lowercase();
+        if lower.ends_with(".rustblox.json") || lower.ends_with(".json") {
+            // Try Rustblox place JSON first.
+            if let Ok(v) = serde_json::from_slice::<serde_json::Value>(&bytes) {
+                if let Some(scene_v) = v.get("scene") {
+                    if let Ok(scene) = serde_json::from_value::<rbx_core::Scene>(scene_v.clone()) {
+                        let place_name = v.get("name").and_then(|n| n.as_str()).unwrap_or(&name).to_string();
+                        self.apply_scene_as_place(scene, place_name, Some(path_trim.clone()));
+                        self.console_output(QString::from("info"), QString::from(format!("Opened local place: {}", p.display())));
+                        return;
+                    }
+                }
+                // Maybe the file is a raw Scene.
+                if let Ok(scene) = serde_json::from_value::<rbx_core::Scene>(v) {
+                    self.apply_scene_as_place(scene, name.clone(), Some(path_trim.clone()));
+                    self.console_output(QString::from("info"), QString::from(format!("Opened local scene: {}", p.display())));
+                    return;
+                }
+            }
+        }
+        // Fall back to Roblox place formats.
+        match rbx_core::import_place(&bytes, &name) {
+            Ok(imported) => {
+                self.apply_imported_place(imported, name, Some(path_trim));
+                self.console_output(QString::from("info"), QString::from(format!("Opened place file: {}", p.display())));
+            }
+            Err(e) => {
+                self.console_output(QString::from("error"), QString::from(format!("Open failed ({}): {e}", p.display())));
+            }
+        }
+    }),
     set_playing: qt_method!(fn set_playing(&mut self, playing: bool) {
         if playing == self.playing {
             return;
@@ -527,9 +959,9 @@ struct StudioApp {
             let Ok(mut state) = shared.lock() else { return };
             state.toolbox_busy = true;
             state.toolbox_status = if keyword.trim().is_empty() {
-                "Loading featured items…".to_string()
+                "Loading featured itemsâ€¦".to_string()
             } else {
-                format!("Searching “{}”…", keyword.trim())
+                format!("Searching â€œ{}â€â€¦", keyword.trim())
             };
             state.toolbox_gen += 1;
         }
@@ -563,6 +995,106 @@ struct StudioApp {
     poll_async: qt_method!(fn poll_async(&mut self) {
         self.sync_async();
     }),
+    // -- GitHub auto-updater ------------------------------------------------
+    check_for_updates: qt_method!(fn check_for_updates(&mut self, manual: bool) {
+        {
+            let Ok(mut state) = self.async_state.lock() else { return };
+            if state.update.busy {
+                if manual {
+                    state.update.visible = true;
+                    state.update.gen = state.update.gen.wrapping_add(1);
+                }
+                return;
+            }
+            let update = &mut state.update;
+            update.busy = true;
+            update.stage = "checking".to_string();
+            update.status = "Checking GitHub for a newer Rustblox Studio...".to_string();
+            update.version.clear();
+            update.notes.clear();
+            update.progress = -1.0;
+            update.package = None;
+            update.kind = None;
+            update.visible = manual;
+            update.gen = update.gen.wrapping_add(1);
+        }
+        self.sync_async();
+        let shared = self.async_state.clone();
+        std::thread::spawn(move || run_update_worker(shared, manual));
+    }),
+    dismiss_update: qt_method!(fn dismiss_update(&mut self) {
+        {
+            let Ok(mut state) = self.async_state.lock() else { return };
+            state.update.visible = false;
+            state.update.gen = state.update.gen.wrapping_add(1);
+        }
+        self.sync_async();
+    }),
+    install_update: qt_method!(fn install_update(&mut self) {
+        let job = {
+            let Ok(state) = self.async_state.lock() else { return };
+            state.update.package.clone().zip(state.update.kind)
+        };
+        let Some((package, kind)) = job else {
+            {
+                let Ok(mut state) = self.async_state.lock() else { return };
+                state.update.stage = "downloading".to_string();
+                state.update.status = "The update is still downloading...".to_string();
+                state.update.gen = state.update.gen.wrapping_add(1);
+            }
+            self.sync_async();
+            return;
+        };
+        match updater::install(&package, kind) {
+            Ok(()) => {
+                {
+                    let Ok(mut state) = self.async_state.lock() else { return };
+                    state.update.stage = "installing".to_string();
+                    state.update.status =
+                        "Restarting Rustblox Studio to finish the update...".to_string();
+                    state.update.busy = true;
+                    state.update.gen = state.update.gen.wrapping_add(1);
+                }
+                self.sync_async();
+                self.console_output(
+                    QString::from("info"),
+                    QString::from("Update helper started; restarting Rustblox Studio."),
+                );
+                // Let Qt flush the screen, then exit so the helper can replace
+                // the executable and relaunch it.
+                std::thread::spawn(|| {
+                    std::thread::sleep(std::time::Duration::from_millis(900));
+                    std::process::exit(0);
+                });
+            }
+            Err(e) => {
+                {
+                    let Ok(mut state) = self.async_state.lock() else { return };
+                    state.update.stage = "error".to_string();
+                    state.update.status = format!("Could not start the update: {e:#}");
+                    state.update.gen = state.update.gen.wrapping_add(1);
+                }
+                self.sync_async();
+            }
+        }
+    }),
+    open_release_page: qt_method!(fn open_release_page(&mut self) {
+        let url = {
+            let Ok(state) = self.async_state.lock() else { return };
+            let url = state.update.page_url.clone();
+            if url.is_empty() {
+                format!("https://github.com/{}/{}", updater::OWNER, updater::REPO)
+            } else {
+                url
+            }
+        };
+        if let Err(e) = updater::open_url(&url) {
+            self.console_output(
+                QString::from("warn"),
+                QString::from(format!("Could not open {url}: {e}")),
+            );
+        }
+    }),
     insert_asset: qt_method!(fn insert_asset(&mut self, asset_id: i64, name: QString, asset_type: i32) {
         let label = name.to_string();
         {
@@ -571,7 +1103,7 @@ struct StudioApp {
                 return;
             }
             state.insert_busy = true;
-            state.insert_status = format!("Downloading “{label}”…");
+            state.insert_status = format!("Downloading â€œ{label}â€â€¦");
             state.insert_gen += 1;
         }
         self.sync_async();
@@ -582,7 +1114,7 @@ struct StudioApp {
             match outcome {
                 Ok(built) => {
                     state.insert_status = format!(
-                        "Parsed “{}” ({} bytes) — inserting…",
+                        "Parsed â€œ{}â€ ({} bytes) â€” insertingâ€¦",
                         built.node.name,
                         built.bytes
                     );
@@ -625,7 +1157,7 @@ struct StudioApp {
         {
             let Ok(mut state) = shared.lock() else { return };
             state.login_busy = true;
-            state.login_status = "Starting Roblox sign-in…".to_string();
+            state.login_status = "Starting Roblox sign-inâ€¦".to_string();
             state.login_gen += 1;
         }
         self.sync_async();
@@ -672,7 +1204,7 @@ struct StudioApp {
             };
             if let Ok(mut state) = shared.lock() {
                 state.login_user = display;
-                state.login_status = format!("Restoring session for @{}…", session.name);
+                state.login_status = format!("Restoring session for @{}â€¦", session.name);
                 state.login_gen += 1;
             }
             let Ok(cfg) = roblox_api::OAuthConfig::load(&path) else { return };
@@ -731,7 +1263,7 @@ struct StudioApp {
         {
             let Ok(mut state) = shared.lock() else { return };
             state.experiences_busy = true;
-            state.experiences_status = "Loading your experiences…".to_string();
+            state.experiences_status = "Loading your experiencesâ€¦".to_string();
             state.exp_gen += 1;
         }
         self.sync_async();
@@ -790,7 +1322,7 @@ struct StudioApp {
         {
             let Ok(mut state) = shared.lock() else { return };
             state.place_busy = true;
-            state.place_status = format!("Downloading “{name}”…");
+            state.place_status = format!("Downloading â€œ{name}â€â€¦");
             state.place_gen += 1;
         }
         self.sync_async();
@@ -834,7 +1366,7 @@ struct StudioApp {
                 Ok(pending) => {
                     let kb = (pending.bytes / 1024).max(1);
                     state.place_status = format!(
-                        "Opening “{}” ({kb} KB, {} parts{})…",
+                        "Opening â€œ{}â€ ({kb} KB, {} parts{})â€¦",
                         pending.name,
                         pending.imported.scene.parts.len(),
                         pending.note
@@ -960,6 +1492,9 @@ struct StudioApp {
             return;
         }
         let target = path.rsplit('/').next().unwrap_or("").to_string();
+        // Asset references are resolved after the scene borrow ends, on the
+        // background resolver (cache first, then download).
+        let mut fetch: Option<(asset_cache::Kind, String)> = None;
         let mut scene = self.scene.borrow_mut();
         // Prefer exact name match; if multiple, mutate the first (best-effort).
         let part = scene.parts.iter_mut().find(|p| p.name == target);
@@ -973,23 +1508,55 @@ struct StudioApp {
                     }
                 }
                 "Size" => { if let Some(v) = parse_vec3(&value) { p.size = v; } }
-                "Color" | "Color3" => { if let Some(c) = parse_color3(&value) { p.color = c; } }
+                "Color" | "Color3" | "BrickColor" => { if let Some(c) = parse_color3(&value) { p.color = c; } }
                 "Transparency" => { if let Ok(v) = value.parse::<f32>() { p.transparency = v.clamp(0.0, 1.0); } }
                 "Reflectance" => { if let Ok(v) = value.parse::<f32>() { p.reflectance = v.clamp(0.0, 1.0); } }
                 "Material" => {
                     p.material = value.clone();
                     // Apply Roblox material defaults on material change.
                     p.color = rbx_render::materials::default_color(&p.material);
-                    // Physical defaults (density/friction/elasticity/weights) are available in
-                    // rbx_render::materials::default_physical for future physics integration.
                 }
-                "CastShadow" => { p.cast_shadow = value == "true"; }
+                "CastShadow" => { p.cast_shadow = matches!(value.as_str(), "true" | "True" | "1"); }
+                "Anchored" | "CanCollide" | "Locked" | "Massless" => {
+                    // Editor/runtime flags not fully modeled in the render Part yet; keep UI responsive.
+                }
+                // Content properties: keep the typed reference, then resolve it
+                // (every cache bucket first, download + cache on a miss).
+                "Texture" | "TextureId" | "TextureID" | "Decal" | "Image" => {
+                    if let Some(mesh) = p.mesh.as_mut() {
+                        mesh.texture_id = value.clone();
+                    }
+                    p.decal = None;
+                    fetch = Some((asset_cache::Kind::Texture, value.clone()));
+                }
+                "MeshId" | "MeshID" | "Mesh" | "AssetId" => {
+                    match p.mesh.as_mut() {
+                        Some(mesh) => mesh.mesh_id = value.clone(),
+                        None => {
+                            p.mesh = Some(rbx_core::MeshRef {
+                                mesh_id: value.clone(),
+                                texture_id: String::new(),
+                                mesh_type: None,
+                                scale: None,
+                                offset: None,
+                            })
+                        }
+                    }
+                    p.mesh_file = None;
+                    fetch = Some((asset_cache::Kind::Mesh, value.clone()));
+                }
+                "SoundId" | "Sound" => {
+                    fetch = Some((asset_cache::Kind::Audio, value.clone()));
+                }
                 _ => {}
             }
         }
         drop(scene);
         self.push_scene_to_viewports();
         *self.dirty.borrow_mut() = true;
+        if let Some((hint, uri)) = fetch {
+            self.request_asset(path.clone(), name.clone(), uri, hint);
+        }
     }),
 
     // Sets/replaces the active Sky from a JSON object of Sky properties (e.g. SkyboxBk..Up).
@@ -1101,11 +1668,176 @@ impl StudioApp {
         self.opencloud_changed();
     }
 
+    /// Queues an asset reference for the background resolver. A single worker
+    /// drains the queue, so a place load with many references downloads them in
+    /// order without spawning one thread per property.
+    fn request_asset(
+        &mut self,
+        target: String,
+        property: String,
+        uri: String,
+        hint: asset_cache::Kind,
+    ) {
+        let uri = uri.trim().to_string();
+        if !asset_resolver::is_asset_reference(&uri) || asset_resolver::asset_id(&uri).is_none() {
+            return;
+        }
+        let epoch = *self.place_epoch.borrow();
+        let spawn = {
+            let Ok(mut state) = self.async_state.lock() else { return };
+            state.asset_jobs.push_back(AssetJob {
+                target,
+                property,
+                uri,
+                hint,
+                epoch,
+            });
+            if state.asset_worker_busy {
+                false
+            } else {
+                state.asset_worker_busy = true;
+                true
+            }
+        };
+        if spawn {
+            let shared = self.async_state.clone();
+            std::thread::spawn(move || run_asset_worker(shared));
+        }
+    }
+
+    /// Attaches a resolved asset to the scene: textures become the part's
+    /// surface decal, meshes its geometry. Returns `true` when the scene changed
+    /// (the caller re-uploads once for a whole batch of results).
+    fn apply_asset(&mut self, pending: PendingAsset) -> bool {
+        if pending.epoch != *self.place_epoch.borrow() {
+            return false; // the reference belongs to a place that is no longer open
+        }
+        let PendingAsset {
+            target,
+            property,
+            uri,
+            result,
+            ..
+        } = pending;
+        let found = match result {
+            Ok(found) => found,
+            Err(err) => {
+                eprintln!("[asset] {property} {uri}: {err}");
+                self.console_output(
+                    QString::from("warn"),
+                    QString::from(format!("Could not resolve {property} `{uri}`: {err}")),
+                );
+                return false;
+            }
+        };
+        let file = found.path.display().to_string();
+        let id = asset_resolver::asset_id(&uri);
+        let matched = {
+            let mut scene = self.scene.borrow_mut();
+            asset_resolver::attach(&mut scene.parts, found.kind, id, &file, &target) > 0
+        };
+        eprintln!("[asset] {} ({target})", found.note());
+        self.console_output(QString::from("info"), QString::from(found.note()));
+        matched
+    }
+
+    /// Makes every asset reference in the scene resolve: cached payloads are
+    /// attached immediately (no network), missing ones are queued for download.
+    fn queue_scene_assets(&mut self) {
+        const MAX_JOBS: usize = 128;
+        let mut jobs: Vec<(String, String, String, asset_cache::Kind)> = Vec::new();
+        let mut seen_ids: BTreeSet<i64> = BTreeSet::new();
+        {
+            let mut scene = self.scene.borrow_mut();
+            for part in scene.parts.iter_mut() {
+                let Some(mesh) = part.mesh.clone() else { continue };
+                let refs = [
+                    ("MeshId", mesh.mesh_id.clone(), asset_cache::Kind::Mesh),
+                    (
+                        "TextureID",
+                        mesh.texture_id.clone(),
+                        asset_cache::Kind::Texture,
+                    ),
+                ];
+                for (property, uri, hint) in refs {
+                    let Some(id) = asset_resolver::asset_id(&uri) else { continue };
+                    if let Some((kind, path)) = asset_resolver::find_anywhere(id, hint) {
+                        let file = path.display().to_string();
+                        match kind {
+                            asset_cache::Kind::Texture => {
+                                if part.decal.is_none() {
+                                    part.decal = Some(file);
+                                }
+                            }
+                            asset_cache::Kind::Mesh => part.mesh_file = Some(file),
+                            _ => {}
+                        }
+                        continue;
+                    }
+                    if !seen_ids.insert(id) {
+                        continue;
+                    }
+                    jobs.push((part.name.clone(), property.to_string(), uri, hint));
+                }
+            }
+        }
+        let total = jobs.len();
+        let queued = total.min(MAX_JOBS);
+        for (target, property, uri, hint) in jobs.into_iter().take(queued) {
+            self.request_asset(target, property, uri, hint);
+        }
+        if queued > 0 {
+            let note = if total > queued {
+                format!("Resolving {queued} of {total} asset references (rest on next open)...")
+            } else {
+                format!(
+                    "Resolving {queued} asset reference{}...",
+                    if queued == 1 { "" } else { "s" }
+                )
+            };
+            self.console_output(QString::from("info"), QString::from(note));
+        }
+    }
+
+    /// Mirrors the GitHub updater state into the Qt properties.
+    fn sync_update(&mut self) {
+        let seen = *self.seen_update.borrow();
+        let snapshot = {
+            let Ok(state) = self.async_state.lock() else { return };
+            let update = &state.update;
+            if update.gen == seen {
+                return;
+            }
+            (
+                update.gen,
+                update.visible,
+                update.stage.clone(),
+                update.status.clone(),
+                update.version.clone(),
+                update.notes.clone(),
+                update.progress,
+                update.busy,
+            )
+        };
+        let (gen, visible, stage, status, version, notes, progress, busy) = snapshot;
+        *self.seen_update.borrow_mut() = gen;
+        self.update_visible = visible;
+        self.update_stage = QString::from(stage);
+        self.update_status = QString::from(status);
+        self.update_version = QString::from(version);
+        self.update_notes = QString::from(notes);
+        self.update_progress = progress;
+        self.update_busy = busy;
+        self.update_changed();
+    }
+
     /// Copies worker state into the Qt properties (GUI thread only).
     fn sync_async(&mut self) {
         self.pump_embedded_viewport();
+        self.sync_update();
         let seen_insert = *self.seen_insert.borrow();
         let seen_place = *self.seen_place.borrow();
+        let seen_asset = *self.seen_asset.borrow();
         let snapshot = match self.async_state.lock() {
             Ok(mut state) => {
                 let pending_insert = if state.insert_gen != seen_insert {
@@ -1117,6 +1849,11 @@ impl StudioApp {
                     state.place_result.take()
                 } else {
                     None
+                };
+                let (asset_gen, pending_assets) = if state.asset_gen != seen_asset {
+                    (state.asset_gen, std::mem::take(&mut state.asset_results))
+                } else {
+                    (seen_asset, Vec::new())
                 };
                 (
                     (
@@ -1141,6 +1878,8 @@ impl StudioApp {
                     ),
                     pending_insert,
                     pending_place,
+                    asset_gen,
+                    pending_assets,
                 )
             }
             Err(_) => return,
@@ -1168,6 +1907,8 @@ impl StudioApp {
             ),
             pending_insert,
             pending_place,
+            asset_gen,
+            pending_assets,
         ) = snapshot;
         if tgen != *self.seen_toolbox.borrow() {
             *self.seen_toolbox.borrow_mut() = tgen;
@@ -1208,6 +1949,173 @@ impl StudioApp {
         if let Some(pending) = pending_place {
             self.apply_place(pending);
         }
+        if !pending_assets.is_empty() {
+            let mut changed = false;
+            for pending in pending_assets {
+                changed |= self.apply_asset(pending);
+            }
+            if changed {
+                self.push_scene_to_viewports();
+                *self.dirty.borrow_mut() = true;
+            }
+        }
+        if asset_gen != seen_asset {
+            *self.seen_asset.borrow_mut() = asset_gen;
+        }
+    }
+
+    fn apply_imported_place(&mut self, imported: rbx_core::ImportedPlace, name: String, path: Option<String>) {
+        let part_count = imported.scene.parts.len();
+        // Any in-flight asset resolution belongs to the previous place.
+        *self.place_epoch.borrow_mut() += 1;
+        // Apply place lighting/sky/atmosphere/post to the renderer state.
+        let lighting = LightingState::from_settings(
+            &imported.scene.lighting,
+            imported.scene.sky.as_ref(),
+            imported.scene.atmosphere.as_ref(),
+            &imported.scene.post,
+        );
+        let tech_label = match lighting.technology {
+            rbx_render::LightingTechnology::Legacy => "Legacy",
+            rbx_render::LightingTechnology::Voxel => "Voxel",
+            rbx_render::LightingTechnology::Compatibility => "Compatibility",
+            rbx_render::LightingTechnology::ShadowMap => "ShadowMap",
+            rbx_render::LightingTechnology::Future => "Future",
+        }
+        .to_string();
+        self.lighting_technology = QString::from(tech_label);
+        self.lighting_changed();
+        *self.lighting.borrow_mut() = lighting.clone();
+        *self.scene.borrow_mut() = imported.scene.clone();
+        // Reset camera to a sensible default for the new scene.
+        let mut cam = Camera::default();
+        if let Some((min, max)) = rbx_core::parts_bounds(&imported.scene.parts) {
+            let cx = (min.x + max.x) * 0.5;
+            let cy = (min.y + max.y) * 0.5;
+            let cz = (min.z + max.z) * 0.5;
+            let span = ((max.x - min.x).powi(2) + (max.y - min.y).powi(2) + (max.z - min.z).powi(2)).sqrt().max(60.0);
+            cam.focus.x = cx;
+            cam.focus.y = cy;
+            cam.focus.z = cz;
+            cam.distance = span * 1.2;
+        }
+        *self.camera.borrow_mut() = cam.clone();
+        if let Some(ev) = self.embedded_viewport.borrow().as_ref() {
+            ev.set_camera(cam.clone());
+            ev.set_lighting(lighting.clone());
+            ev.set_scene(imported.scene.clone());
+        }
+        if let Some(nv) = self.native_viewport.borrow().as_ref() {
+            nv.set_camera(cam);
+            nv.set_lighting(lighting.clone());
+            nv.set_scene(imported.scene.clone());
+        }
+        if let Some(r) = self.renderer.borrow_mut().as_mut() {
+            r.upload_scene(&imported.scene);
+        }
+        // Stop any running play session when switching places.
+        *self.script_host.borrow_mut() = None;
+        if self.playing {
+            self.playing = false;
+            self.playing_changed();
+        }
+        *self.dirty.borrow_mut() = true;
+
+        // Rebuild Explorer tree from the place's instance hierarchy.
+        let icons_root = workspace_root().join("assets").join("studio").join("icons");
+        let registry = IconRegistry::load(&icons_root).ok();
+        let nodes: Vec<ExplorerNode> = imported
+            .root
+            .iter()
+            .map(instance_node_to_explorer)
+            .collect();
+        let tree_json = explorer_to_json(&nodes, registry.as_ref(), &icons_root).to_string();
+        self.explorer_load(QString::from(tree_json));
+
+        self.place_name = QString::from(name.clone());
+        *self.current_place_path.borrow_mut() = path;
+        self.place_status = QString::from(format!("Opened \"{name}\" ({part_count} parts)."));
+        self.place_changed();
+        self.queue_scene_assets();
+    }
+
+    fn apply_scene_as_place(&mut self, scene: rbx_core::Scene, name: String, path: Option<String>) {
+        // Any in-flight asset resolution belongs to the previous place.
+        *self.place_epoch.borrow_mut() += 1;
+        // Build a minimal instance tree for Explorer: DataModel with Workspace/Lighting/etc as needed.
+        let mut root = vec![
+            node("Workspace", "Workspace", true, vec![]),
+            node("Lighting", "Lighting", false, vec![]),
+            node("ReplicatedStorage", "ReplicatedStorage", false, vec![]),
+            node("ServerStorage", "ServerStorage", false, vec![]),
+            node("ServerScriptService", "ServerScriptService", false, vec![]),
+            node("StarterGui", "StarterGui", false, vec![]),
+            node("StarterPack", "StarterPack", false, vec![]),
+            node("StarterPlayer", "StarterPlayer", false, vec![]),
+        ];
+        // Populate Workspace with parts as simple nodes.
+        if let Some(ws) = root.iter_mut().find(|n| n.name == "Workspace") {
+            ws.children = scene.parts.iter().map(|p| {
+                let mut n = node(&p.name, &p.class_name, false, vec![]);
+                n.props.insert("Position".to_string(), format!("{}, {}, {}", p.position.x, p.position.y, p.position.z));
+                n.props.insert("Size".to_string(), format!("{}, {}, {}", p.size.x, p.size.y, p.size.z));
+                n.props.insert("Color".to_string(), format!("{}, {}, {}", p.color[0], p.color[1], p.color[2]));
+                n.props.insert("Material".to_string(), p.material.clone());
+                n.props.insert("Transparency".to_string(), format!("{}", p.transparency));
+                n.props.insert("Anchored".to_string(), "false".to_string());
+                n.props.insert("CanCollide".to_string(), "true".to_string());
+                n
+            }).collect();
+        }
+        let part_count = scene.parts.len();
+        let imported_scene = scene.clone();
+        // Use scene application, then override explorer with our constructed tree.
+        let lighting = LightingState::from_settings(
+            &imported_scene.lighting,
+            imported_scene.sky.as_ref(),
+            imported_scene.atmosphere.as_ref(),
+            &imported_scene.post,
+        );
+        let tech_label = match lighting.technology {
+            rbx_render::LightingTechnology::Legacy => "Legacy",
+            rbx_render::LightingTechnology::Voxel => "Voxel",
+            rbx_render::LightingTechnology::Compatibility => "Compatibility",
+            rbx_render::LightingTechnology::ShadowMap => "ShadowMap",
+            rbx_render::LightingTechnology::Future => "Future",
+        }.to_string();
+        self.lighting_technology = QString::from(tech_label);
+        self.lighting_changed();
+        *self.lighting.borrow_mut() = lighting.clone();
+        *self.scene.borrow_mut() = imported_scene.clone();
+        let mut cam = Camera::default();
+        if let Some((min, max)) = rbx_core::parts_bounds(&imported_scene.parts) {
+            let cx = (min.x + max.x) * 0.5;
+            let cy = (min.y + max.y) * 0.5;
+            let cz = (min.z + max.z) * 0.5;
+            let span = ((max.x - min.x).powi(2) + (max.y - min.y).powi(2) + (max.z - min.z).powi(2)).sqrt().max(60.0);
+            cam.focus.x = cx; cam.focus.y = cy; cam.focus.z = cz; cam.distance = span * 1.2;
+        }
+        *self.camera.borrow_mut() = cam.clone();
+        if let Some(ev) = self.embedded_viewport.borrow().as_ref() {
+            ev.set_camera(cam.clone()); ev.set_lighting(lighting.clone()); ev.set_scene(imported_scene.clone());
+        }
+        if let Some(nv) = self.native_viewport.borrow().as_ref() {
+            nv.set_camera(cam); nv.set_lighting(lighting.clone()); nv.set_scene(imported_scene.clone());
+        }
+        if let Some(r) = self.renderer.borrow_mut().as_mut() { r.upload_scene(&imported_scene); }
+        *self.script_host.borrow_mut() = None;
+        if self.playing { self.playing = false; self.playing_changed(); }
+        *self.dirty.borrow_mut() = true;
+
+        let icons_root = workspace_root().join("assets").join("studio").join("icons");
+        let registry = IconRegistry::load(&icons_root).ok();
+        let tree_json = explorer_to_json(&root, registry.as_ref(), &icons_root).to_string();
+        self.explorer_load(QString::from(tree_json));
+        self.place_name = QString::from(name.clone());
+        *self.current_place_path.borrow_mut() = path;
+        self.place_status = QString::from(format!("Opened \"{name}\" ({part_count} parts)."));
+        self.place_changed();
+        self.queue_scene_assets();
     }
 
     /// Swaps the open place with one downloaded from Roblox.
@@ -1219,6 +2127,8 @@ impl StudioApp {
             note,
         } = pending;
         let part_count = imported.scene.parts.len();
+        // Any in-flight asset resolution belongs to the previous place.
+        *self.place_epoch.borrow_mut() += 1;
         // Apply place lighting/sky/atmosphere/post to the renderer state.
         let lighting = LightingState::from_settings(
             &imported.scene.lighting,
@@ -1286,16 +2196,17 @@ impl StudioApp {
         self.place_name = QString::from(name.clone());
         let kb = (bytes / 1024).max(1);
         self.place_status = QString::from(format!(
-            "Opened “{name}” — {part_count} part{}, {kb} KB{note}",
+            "Opened â€œ{name}â€ â€” {part_count} part{}, {kb} KB{note}",
             if part_count == 1 { "" } else { "s" }
         ));
         self.place_changed();
         self.console_output(
             QString::from("info"),
             QString::from(format!(
-                "Opened place “{name}” ({part_count} parts, {kb} KB{note})."
+                "Opened place â€œ{name}â€ ({part_count} parts, {kb} KB{note})."
             )),
         );
+        self.queue_scene_assets();
     }
     /// Places a downloaded Toolbox asset into the scene and hands its Explorer
     /// node to QML (which owns the tree model).
@@ -1350,13 +2261,13 @@ impl StudioApp {
         let kb = (bytes / 1024).max(1);
         let status = if part_count > 0 {
             format!(
-                "Inserted “{}” as {label} — {part_count} part{}, {kb} KB ({note})",
+                "Inserted â€œ{}â€ as {label} â€” {part_count} part{}, {kb} KB ({note})",
                 node.name,
                 if part_count == 1 { "" } else { "s" }
             )
         } else {
             format!(
-                "Inserted “{}” as {label} — {kb} KB ({note})",
+                "Inserted â€œ{}â€ as {label} â€” {kb} KB ({note})",
                 node.name
             )
         };
@@ -2103,17 +3014,18 @@ fn build_qml(
     let font_bold = file_url(&root.join("assets/studio/fonts/BuilderSans-Bold.otf"));
     let font_mono = file_url(&root.join("assets/studio/fonts/FiraMono-Regular.ttf"));
 
-    let bg = tok_color(tokens, "Color.Surface.Surface_0", "#121215");
-    let s100 = tok_color(tokens, "Color.Surface.Surface_100", "#191A1F");
-    let s200 = tok_color(tokens, "Color.Surface.Surface_200", "#202227");
-    let s300 = tok_color(tokens, "Color.Surface.Surface_300", "#272930");
-    let stroke = tok_color(tokens, "Color.Stroke.Default", "#2B2D33");
-    let text = tok_color(tokens, "Color.Content.Default", "#D5D7DD");
-    let text_muted = tok_color(tokens, "Color.Content.Muted", "#BCBEC8");
-    let accent = tok_color(tokens, "Color.Content.Link", "#528BFF");
-    let hover = tok_color(tokens, "Color.State.Hover", "#272930");
+    // Neutral dark theme (avoid smokey-blue/AI tint)
+    let bg = "#181818".to_string();
+    let s100 = "#202020".to_string();
+    let s200 = "#262626".to_string();
+    let s300 = "#2F2F2F".to_string();
+    let stroke = "#343434".to_string();
+    let text = "#E5E5E5".to_string();
+    let text_muted = "#A1A1A1".to_string();
+    let accent = "#4C8DFF".to_string(); // muted accent
+    let hover = "#2A2A2A".to_string();
 
-    let _radius = tokens.radius("Medium").unwrap_or(8.0);
+    let _radius = 3.0_f32;
     let _pad = tokens.padding("Medium").unwrap_or(12.0);
     let _gap = tokens.gap("Small").unwrap_or(8.0);
     let stroke_w = tokens.stroke("Standard").unwrap_or(1.0);
@@ -2142,8 +3054,56 @@ ApplicationWindow {{
     height: 920
     title: root.placeName + " - Rustblox Studio"
     color: "{bg}"
+    font.family: uiFont
+
+    // Global palette so every Qt Quick Controls item (menus, dialogs, popups)
+    // gets readable text for the active theme instead of the OS default black.
+    palette.window: "{bg}"
+    palette.windowText: themeMenuText
+    palette.base: "{s100}"
+    palette.alternateBase: "{s200}"
+    palette.text: themeMenuText
+    palette.button: "{s100}"
+    palette.buttonText: themeMenuText
+    palette.brightText: "#FFFFFF"
+    palette.highlight: "{accent}"
+    palette.highlightedText: "#FFFFFF"
+    palette.placeholderText: themeMenuTextMuted
+    palette.toolTipBase: "{s200}"
+    palette.toolTipText: themeMenuText
+
+    // Modern slim scrollbar shared by every dock/list (no native 90s chrome).
+    component StudioScrollBar: ScrollBar {{
+        id: sb
+        policy: ScrollBar.AsNeeded
+        width: 10
+        height: 10
+        padding: 2
+        background: Rectangle {{ color: "transparent" }}
+        contentItem: Rectangle {{
+            implicitWidth: 6
+            implicitHeight: 6
+            radius: 3
+            color: sb.pressed
+                ? (root.isDarkTheme ? "#FFFFFF" : "#3C424B")
+                : (sb.hovered
+                    ? (root.isDarkTheme ? "#EDEFF3" : "#565D67")
+                    : (root.isDarkTheme ? "#C9CDD6" : "#7A818C"))
+            opacity: (sb.size >= 1.0) ? 0.0 : 0.95
+        }}
+    }}
+
+    property real insertAnchorX: 300
+    property real insertAnchorY: 120
+    function openExplorerInsert(x, y) {{
+        explorerInsertMenu.width = 240;
+        explorerInsertMenu.x = Math.min(Math.max(4, x), root.width - 246);
+        explorerInsertMenu.y = Math.min(Math.max(40, y), root.height - 360);
+        explorerInsertMenu.open();
+    }}
 
     property string placeName: "{place_name}"
+    property string appVersion: "{app_version}"
     property var ribbonDef: {ribbon_json}
     property var explorerTree: {explorer_json}
     property var explorerExpanded: ({{}})
@@ -2174,10 +3134,11 @@ ApplicationWindow {{
     property string openCloudError: ""
     property var consoleLines: [
         {{ time: "00:00:00", level: "info", text: "Rustblox Studio initialized." }},
-        {{ time: "00:00:00", level: "print", text: "API dump properties and enums loaded." }},
-        {{ time: "00:00:00", level: "print", text: "Explorer: default DataModel loaded (ReplicatedStorage contains all Roblox instances for testing)." }},
-        {{ time: "00:00:00", level: "warn", text: "Renderer/scripting backends are not yet wired (wgpu + mlua planned)." }}
+        {{ time: "00:00:00", level: "info", text: "Renderer: wgpu viewport ready. Scripting: Luau (mlua) host ready." }},
+        {{ time: "00:00:00", level: "print", text: "Explorer loaded. API dump properties and enums available." }}
     ]
+    property real editorFontSize: 12
+    property string editorFontFamily: root.monoFont
     property string activeTab: "{active_tab}"
     property bool showStartPage: true
     property string startNav: "Home"
@@ -2191,6 +3152,11 @@ ApplicationWindow {{
     property string uiFontMedium: builderSansMedium.name !== "" ? builderSansMedium.name : uiFont
     property string uiFontBold: builderSansBold.name !== "" ? builderSansBold.name : uiFont
     property string monoFont: firaMonoRegular.name !== "" ? firaMonoRegular.name : "Consolas"
+    property bool isDarkTheme: true
+    property color themeMenuText: isDarkTheme ? "#F5F5F5" : "#1F2328"
+    property color themeMenuTextMuted: isDarkTheme ? "#A3A3A3" : "#59636E"
+    property color themeMenuBg: isDarkTheme ? "{s100}" : "#FFFFFF"
+    property color themeMenuHover: isDarkTheme ? "{s300}" : "#EAECEF"
 
     Component.onCompleted: {{
         studio.activeTab = activeTab;
@@ -2210,6 +3176,8 @@ ApplicationWindow {{
         studio.opencloud_refresh();
         studio.toolbox_search(10, "");
         studio.prefetch_material_textures();
+        // GitHub Releases check (silent: only shows the screen when an update exists).
+        studio.check_for_updates(false);
     }}
 
     FontLoader {{ id: builderSansRegular; source: "{font_regular}" }}
@@ -2292,7 +3260,7 @@ ApplicationWindow {{
             if (wsIndex < 0) return;
             var ws = tree[wsIndex];
             var kids = (ws.children || []).slice();
-            // Roblox-style unique sibling names: "Tree", "Tree (2)", …
+            // Roblox-style unique sibling names: "Tree", "Tree (2)", â€¦
             var base = newNode.name || "Model";
             var name = base;
             var n = 1;
@@ -2319,9 +3287,9 @@ ApplicationWindow {{
         onTriggered: studio.step_scripts(0.033)
     }}
 
-    // Drains results from the toolbox/API worker threads.
+    // Drains results from the toolbox/API worker threads and syncs viewport state.
     Timer {{
-        interval: 120
+        interval: 40
         running: true
         repeat: true
         onTriggered: {{
@@ -2377,6 +3345,24 @@ ApplicationWindow {{
         openCloudInput.text = "";
         root.showOpenCloudDialog = false;
     }}
+
+    property bool showOpenDialog: false
+    property string openDialogPath: ""
+    function openFileDialog() {{
+        root.openDialogPath = "";
+        root.showOpenDialog = true;
+        if (typeof openPathInput !== "undefined" && openPathInput) openPathInput.text = "";
+    }}
+    function closeFileDialog() {{
+        root.showOpenDialog = false;
+        root.openDialogPath = "";
+    }}
+    function submitOpenFileDialog() {{
+        var p = (typeof openPathInput !== "undefined" && openPathInput) ? (openPathInput.text || "").trim() : "";
+        if (p.length === 0) return;
+        root.showOpenDialog = false;
+        studio.open_place_file_path(p);
+    }}
     function ribbonControl(id) {{
         if (id === "Settings") {{
             root.openSettings();
@@ -2398,6 +3384,27 @@ ApplicationWindow {{
         var tabs = ribbonDef.tabs || [];
         for (var i = 0; i < tabs.length; i++) {{ if (tabs[i].id === id) return tabs[i]; }}
         return tabs.length ? tabs[0] : {{ id: id, label: id, dynamic: false, groups: [] }};
+    }}
+
+    function closeDocTab(id) {{
+        var tabs = (root.docTabs || []).slice();
+        var idx = -1;
+        for (var i = 0; i < tabs.length; i++) {{ if (tabs[i].id === id) {{ idx = i; break; }} }}
+        if (idx < 0) return;
+        var t = tabs[idx];
+        // Closing the place/viewport tab closes the current place and returns to Start Page.
+        if (t.kind === "viewport") {{
+            root.showStartPage = true;
+            root.startNav = "Home";
+            return;
+        }}
+        tabs.splice(idx, 1);
+        if (tabs.length === 0) {{
+            tabs = [{{ id: "viewport", title: root.placeName, kind: "viewport", icon: "{icon_viewport}" }}];
+        }}
+        root.docTabs = tabs;
+        var still = tabs.some(function(x) {{ return x.id === root.activeDocTab; }});
+        if (!still) root.activeDocTab = tabs[Math.max(0, idx - 1)].id;
     }}
 
     function isExpanded(path) {{ return explorerExpanded ? !!explorerExpanded[path] : false; }}
@@ -3049,6 +4056,7 @@ ApplicationWindow {{
                         anchors.verticalCenter: parent.verticalCenter
                     }}
                     Text {{
+                        id: nodeName
                         anchors.verticalCenter: parent.verticalCenter
                         text: node.name
                         color: "{text}"
@@ -3060,15 +4068,49 @@ ApplicationWindow {{
                 MouseArea {{
                     id: rowMa
                     anchors.fill: parent
+                    anchors.rightMargin: 32
                     hoverEnabled: true
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
                     onClicked: function(mouse) {{
                         root.explorerSelected = nodeCol.fullPath;
                         root.selectedNode = node;
                         if (mouse.button === Qt.RightButton) {{
+                            var ap = addMa.mapToItem(null, addMa.width + 2, 0);
+                            root.insertAnchorX = ap.x;
+                            root.insertAnchorY = ap.y;
                             explorerContextMenu.popup();
                         }} else {{
                             if (nodeCol.hasKids) root.toggleExpanded(nodeCol.fullPath);
+                        }}
+                    }}
+                }}
+                Rectangle {{
+                    id: addBtn
+                    visible: rowMa.containsMouse || addMa.containsMouse
+                    width: 14; height: 14; radius: 3
+                    // Sits immediately after the instance name, not at the row edge.
+                    x: nodeName.mapToItem(nodeCol, nodeName.width, 0).x + 4
+                    y: (parent.height - height) / 2
+                    color: addMa.containsMouse ? "{s300}" : "transparent"
+                    Text {{
+                        anchors.centerIn: parent
+                        text: "+"
+                        color: "{text_muted}"
+                        font.family: root.uiFont
+                        font.pixelSize: 12
+                    }}
+                    MouseArea {{
+                        id: addMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {{
+                            root.explorerSelected = nodeCol.fullPath;
+                            root.selectedNode = node;
+                            var p = addMa.mapToItem(null, addMa.width + 2, 0);
+                            root.insertAnchorX = p.x;
+                            root.insertAnchorY = p.y;
+                            root.openExplorerInsert(p.x, p.y);
                         }}
                     }}
                 }}
@@ -3100,127 +4142,209 @@ ApplicationWindow {{
             Layout.fillWidth: true
             Layout.preferredHeight: 30
             color: "{bg}"
+            Rectangle {{ anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom; height: 1; color: "{stroke}"; opacity: 0.5 }}
             RowLayout {{
                 anchors.fill: parent
-                anchors.leftMargin: 8
+                anchors.leftMargin: 6
                 anchors.rightMargin: 8
-                spacing: 2
+                spacing: 1
 
                 component MenuTab: Rectangle {{
                     id: mtab
                     property string label
                     property var menuObj
+                    readonly property bool active: (menuObj && menuObj.visible)
                     Layout.preferredHeight: 24
-                    Layout.preferredWidth: mtabLabel.implicitWidth + 14
+                    Layout.preferredWidth: mtabLabel.implicitWidth + 16
+                    Layout.alignment: Qt.AlignVCenter
                     radius: 4
-                    color: (mtabMa.containsMouse || (menuObj && menuObj.visible)) ? "{s200}" : "transparent"
-                    Text {{ id: mtabLabel; anchors.centerIn: parent; text: mtab.label; color: "{text}"; font.family: root.uiFont; font.pixelSize: {menu_fs} }}
+                    color: active ? "{s200}" : (mtabMa.containsMouse ? "{s100}" : "transparent")
+                    border.width: active ? 1 : 0
+                    border.color: "{stroke}"
+                    Text {{
+                        id: mtabLabel; anchors.centerIn: parent; text: mtab.label
+                        color: active || mtabMa.containsMouse ? root.themeMenuText : root.themeMenuTextMuted
+                        font.family: root.uiFont && root.uiFont !== "" ? root.uiFont : "Segoe UI"
+                        font.pixelSize: {menu_fs}
+                        renderType: Text.NativeRendering
+                    }}
                     MouseArea {{
-                        id: mtabMa; anchors.fill: parent; hoverEnabled: true
-                        onClicked: if (mtab.menuObj) mtab.menuObj.popup(mtab, 0, mtab.height)
+                        id: mtabMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                        onClicked: if (mtab.menuObj) mtab.menuObj.popup(mtab, 0, mtab.height + 2)
                     }}
                 }}
 
                 Menu {{
                     id: fileMenu
-                    background: Rectangle {{ implicitWidth: 220; color: "{s200}"; border.width: 1; border.color: "{stroke}" }}
+                    topPadding: 6; bottomPadding: 6; leftPadding: 4; rightPadding: 4
+                    background: Rectangle {{ implicitWidth: 250; color: root.themeMenuBg; border.width: 1; border.color: "{stroke}"; radius: 6 }}
                     delegate: MenuItem {{
-                        id: mi; implicitHeight: 28
-                        contentItem: Text {{ leftPadding: 10; text: mi.text; color: mi.enabled ? "{text}" : "{text_muted}"; font.family: root.uiFont; font.pixelSize: 12; verticalAlignment: Text.AlignVCenter }}
-                        background: Rectangle {{ color: mi.highlighted ? "{hover}" : "transparent" }}
+                        id: mi; implicitHeight: 30; leftPadding: 6; rightPadding: 6
+                        contentItem: Text {{
+                            leftPadding: 10; rightPadding: 10
+                            text: mi.text
+                            color: mi.enabled ? root.themeMenuText : root.themeMenuTextMuted
+                            font.family: (root.uiFont && root.uiFont !== "") ? root.uiFont : "Segoe UI"
+                            font.pixelSize: 13
+                            verticalAlignment: Text.AlignVCenter
+                            elide: Text.ElideRight
+                            renderType: Text.NativeRendering
+                        }}
+                        background: Rectangle {{ anchors.fill: parent; anchors.margins: 2; radius: 4; color: mi.highlighted && mi.enabled ? root.themeMenuHover : "transparent" }}
                     }}
-                    MenuItem {{ text: "New"; enabled: false }}
-                    MenuItem {{ text: "Open from File..."; enabled: false }}
-                    MenuItem {{ text: "Open from Roblox..."; enabled: false }}
-                    MenuSeparator {{ contentItem: Rectangle {{ implicitHeight: 1; color: "{stroke}" }} }}
-                    MenuItem {{ text: "Save to File"; enabled: false }}
-                    MenuItem {{ text: "Save to File As..."; enabled: false }}
+                    MenuItem {{ text: "New Place"; enabled: false }}
+                    MenuItem {{ text: "Open from File..."; enabled: true; onTriggered: root.openFileDialog() }}
+                    MenuItem {{ text: "Open from Roblox..."; enabled: true; onTriggered: {{ root.showStartPage = true; root.startNav = "Experiences"; if (studio.login_user !== "") studio.refresh_experiences(); }} }}
+                    MenuSeparator {{ contentItem: Rectangle {{ implicitHeight: 1; color: "{stroke}"; opacity: 0.5 }} background: Item {{ implicitHeight: 9 }} }}
+                    MenuItem {{ text: "Save to File"; enabled: !root.showStartPage; onTriggered: studio.save_place_file(false) }}
+                    MenuItem {{ text: "Save to File As..."; enabled: !root.showStartPage; onTriggered: studio.save_place_file(true) }}
                     MenuItem {{ text: "Publish to Roblox"; enabled: false }}
-                    MenuSeparator {{ contentItem: Rectangle {{ implicitHeight: 1; color: "{stroke}" }} }}
+                    MenuSeparator {{ contentItem: Rectangle {{ implicitHeight: 1; color: "{stroke}"; opacity: 0.5 }} background: Item {{ implicitHeight: 9 }} }}
                     MenuItem {{ text: "Studio Settings..."; enabled: true; onTriggered: root.openSettings() }}
-                    MenuItem {{ text: "Close Place"; enabled: true; onTriggered: {{ root.startNav = "Home"; root.showStartPage = true }} }}
+                    MenuItem {{ text: "Close Place"; enabled: !root.showStartPage; onTriggered: {{ root.startNav = "Home"; root.showStartPage = true }} }}
                 }}
                 Menu {{
                     id: editMenu
-                    background: Rectangle {{ implicitWidth: 240; color: "{s200}"; border.width: 1; border.color: "{stroke}" }}
+                    topPadding: 6; bottomPadding: 6; leftPadding: 4; rightPadding: 4
+                    background: Rectangle {{ implicitWidth: 260; color: root.themeMenuBg; border.width: 1; border.color: "{stroke}"; radius: 6 }}
                     delegate: MenuItem {{
-                        id: mi2; implicitHeight: 28
-                        contentItem: Text {{ leftPadding: 10; text: mi2.text; color: mi2.enabled ? "{text}" : "{text_muted}"; font.family: root.uiFont; font.pixelSize: 12; verticalAlignment: Text.AlignVCenter }}
-                        background: Rectangle {{ color: mi2.highlighted ? "{hover}" : "transparent" }}
+                        id: mi2; implicitHeight: 30; leftPadding: 6; rightPadding: 6
+                        contentItem: Text {{
+                            leftPadding: 10; rightPadding: 10
+                            text: mi2.text
+                            color: mi2.enabled ? root.themeMenuText : root.themeMenuTextMuted
+                            font.family: (root.uiFont && root.uiFont !== "") ? root.uiFont : "Segoe UI"
+                            font.pixelSize: 13
+                            verticalAlignment: Text.AlignVCenter
+                            elide: Text.ElideRight
+                            renderType: Text.NativeRendering
+                        }}
+                        background: Rectangle {{ anchors.fill: parent; anchors.margins: 2; radius: 4; color: mi2.highlighted && mi2.enabled ? root.themeMenuHover : "transparent" }}
                     }}
                     MenuItem {{ text: "Undo"; enabled: false }}
                     MenuItem {{ text: "Redo"; enabled: false }}
-                    MenuSeparator {{ contentItem: Rectangle {{ implicitHeight: 1; color: "{stroke}" }} }}
+                    MenuSeparator {{ contentItem: Rectangle {{ implicitHeight: 1; color: "{stroke}"; opacity: 0.5 }} background: Item {{ implicitHeight: 9 }} }}
                     MenuItem {{ text: "Cut\tCtrl+X"; enabled: root.explorerSelected !== ""; onTriggered: root.cutSelected() }}
                     MenuItem {{ text: "Copy\tCtrl+C"; enabled: root.explorerSelected !== ""; onTriggered: root.copySelected() }}
                     MenuItem {{ text: "Paste\tCtrl+V"; enabled: root.explorerClipboard !== null; onTriggered: root.pasteClipboard() }}
                     MenuItem {{ text: "Duplicate\tCtrl+D"; enabled: root.explorerSelected !== ""; onTriggered: root.duplicateSelected() }}
                     MenuItem {{ text: "Delete\tDel"; enabled: root.explorerSelected !== ""; onTriggered: root.deleteSelected() }}
-                    MenuSeparator {{ contentItem: Rectangle {{ implicitHeight: 1; color: "{stroke}" }} }}
+                    MenuSeparator {{ contentItem: Rectangle {{ implicitHeight: 1; color: "{stroke}"; opacity: 0.5 }} background: Item {{ implicitHeight: 9 }} }}
                     MenuItem {{ text: "Select All"; enabled: false }}
                 }}
                 Menu {{
                     id: viewMenu
-                    background: Rectangle {{ implicitWidth: 220; color: "{s200}"; border.width: 1; border.color: "{stroke}" }}
+                    topPadding: 6; bottomPadding: 6; leftPadding: 4; rightPadding: 4
+                    background: Rectangle {{ implicitWidth: 240; color: root.themeMenuBg; border.width: 1; border.color: "{stroke}"; radius: 6 }}
                     delegate: MenuItem {{
-                        id: mi3; implicitHeight: 28
-                        contentItem: Text {{ leftPadding: 10; text: mi3.text; color: mi3.enabled ? "{text}" : "{text_muted}"; font.family: root.uiFont; font.pixelSize: 12; verticalAlignment: Text.AlignVCenter }}
-                        background: Rectangle {{ color: mi3.highlighted ? "{hover}" : "transparent" }}
+                        id: mi3; implicitHeight: 30; leftPadding: 6; rightPadding: 6
+                        contentItem: Text {{
+                            leftPadding: 10; rightPadding: 10
+                            text: mi3.text
+                            color: mi3.enabled ? root.themeMenuText : root.themeMenuTextMuted
+                            font.family: (root.uiFont && root.uiFont !== "") ? root.uiFont : "Segoe UI"
+                            font.pixelSize: 13
+                            verticalAlignment: Text.AlignVCenter
+                            elide: Text.ElideRight
+                            renderType: Text.NativeRendering
+                        }}
+                        background: Rectangle {{ anchors.fill: parent; anchors.margins: 2; radius: 4; color: mi3.highlighted && mi3.enabled ? root.themeMenuHover : "transparent" }}
                     }}
                     MenuItem {{ text: "Explorer"; enabled: false }}
                     MenuItem {{ text: "Properties"; enabled: false }}
                     MenuItem {{ text: "Output"; enabled: false }}
                     MenuItem {{ text: "Toolbox"; enabled: false }}
                     MenuItem {{ text: "Command Bar"; enabled: false }}
-                    MenuSeparator {{ contentItem: Rectangle {{ implicitHeight: 1; color: "{stroke}" }} }}
-                    MenuItem {{ text: "View Selector"; enabled: false }}
+                    MenuSeparator {{ contentItem: Rectangle {{ implicitHeight: 1; color: "{stroke}"; opacity: 0.5 }} background: Item {{ implicitHeight: 9 }} }}
+                    MenuItem {{ text: "Start Page"; enabled: true; onTriggered: {{ root.showStartPage = true }} }}
                 }}
                 Menu {{
                     id: pluginsMenu
-                    background: Rectangle {{ implicitWidth: 220; color: "{s200}"; border.width: 1; border.color: "{stroke}" }}
+                    topPadding: 6; bottomPadding: 6; leftPadding: 4; rightPadding: 4
+                    background: Rectangle {{ implicitWidth: 230; color: root.themeMenuBg; border.width: 1; border.color: "{stroke}"; radius: 6 }}
                     delegate: MenuItem {{
-                        id: mi4; implicitHeight: 28
-                        contentItem: Text {{ leftPadding: 10; text: mi4.text; color: mi4.enabled ? "{text}" : "{text_muted}"; font.family: root.uiFont; font.pixelSize: 12; verticalAlignment: Text.AlignVCenter }}
-                        background: Rectangle {{ color: mi4.highlighted ? "{hover}" : "transparent" }}
+                        id: mi4; implicitHeight: 30; leftPadding: 6; rightPadding: 6
+                        contentItem: Text {{
+                            leftPadding: 10; rightPadding: 10
+                            text: mi4.text
+                            color: mi4.enabled ? root.themeMenuText : root.themeMenuTextMuted
+                            font.family: (root.uiFont && root.uiFont !== "") ? root.uiFont : "Segoe UI"
+                            font.pixelSize: 13
+                            verticalAlignment: Text.AlignVCenter
+                            elide: Text.ElideRight
+                            renderType: Text.NativeRendering
+                        }}
+                        background: Rectangle {{ anchors.fill: parent; anchors.margins: 2; radius: 4; color: mi4.highlighted && mi4.enabled ? root.themeMenuHover : "transparent" }}
                     }}
                     MenuItem {{ text: "Manage Plugins"; enabled: false }}
                     MenuItem {{ text: "Plugins Folder"; enabled: false }}
                 }}
                 Menu {{
                     id: testMenu
-                    background: Rectangle {{ implicitWidth: 220; color: "{s200}"; border.width: 1; border.color: "{stroke}" }}
+                    topPadding: 6; bottomPadding: 6; leftPadding: 4; rightPadding: 4
+                    background: Rectangle {{ implicitWidth: 230; color: root.themeMenuBg; border.width: 1; border.color: "{stroke}"; radius: 6 }}
                     delegate: MenuItem {{
-                        id: mi5; implicitHeight: 28
-                        contentItem: Text {{ leftPadding: 10; text: mi5.text; color: mi5.enabled ? "{text}" : "{text_muted}"; font.family: root.uiFont; font.pixelSize: 12; verticalAlignment: Text.AlignVCenter }}
-                        background: Rectangle {{ color: mi5.highlighted ? "{hover}" : "transparent" }}
+                        id: mi5; implicitHeight: 30; leftPadding: 6; rightPadding: 6
+                        contentItem: Text {{
+                            leftPadding: 10; rightPadding: 10
+                            text: mi5.text
+                            color: mi5.enabled ? root.themeMenuText : root.themeMenuTextMuted
+                            font.family: (root.uiFont && root.uiFont !== "") ? root.uiFont : "Segoe UI"
+                            font.pixelSize: 13
+                            verticalAlignment: Text.AlignVCenter
+                            elide: Text.ElideRight
+                            renderType: Text.NativeRendering
+                        }}
+                        background: Rectangle {{ anchors.fill: parent; anchors.margins: 2; radius: 4; color: mi5.highlighted && mi5.enabled ? root.themeMenuHover : "transparent" }}
                     }}
-                    MenuItem {{ text: "Play"; enabled: !studio.playing; onTriggered: studio.set_playing(true) }}
+                    MenuItem {{ text: studio.playing ? "Stop (F5)" : "Play (F5)"; enabled: !root.showStartPage; onTriggered: studio.set_playing(!studio.playing) }}
+                    MenuSeparator {{ contentItem: Rectangle {{ implicitHeight: 1; color: "{stroke}"; opacity: 0.5 }} background: Item {{ implicitHeight: 9 }} }}
                     MenuItem {{ text: "Play Here"; enabled: false }}
                     MenuItem {{ text: "Run"; enabled: false }}
-                    MenuItem {{ text: "Stop"; enabled: studio.playing; onTriggered: studio.set_playing(false) }}
-                    MenuSeparator {{ contentItem: Rectangle {{ implicitHeight: 1; color: "{stroke}" }} }}
-                    MenuItem {{ text: "Test Service"; enabled: false }}
                 }}
                 Menu {{
                     id: windowMenu
-                    background: Rectangle {{ implicitWidth: 220; color: "{s200}"; border.width: 1; border.color: "{stroke}" }}
+                    topPadding: 6; bottomPadding: 6; leftPadding: 4; rightPadding: 4
+                    background: Rectangle {{ implicitWidth: 230; color: root.themeMenuBg; border.width: 1; border.color: "{stroke}"; radius: 6 }}
                     delegate: MenuItem {{
-                        id: mi6; implicitHeight: 28
-                        contentItem: Text {{ leftPadding: 10; text: mi6.text; color: mi6.enabled ? "{text}" : "{text_muted}"; font.family: root.uiFont; font.pixelSize: 12; verticalAlignment: Text.AlignVCenter }}
-                        background: Rectangle {{ color: mi6.highlighted ? "{hover}" : "transparent" }}
+                        id: mi6; implicitHeight: 30; leftPadding: 6; rightPadding: 6
+                        contentItem: Text {{
+                            leftPadding: 10; rightPadding: 10
+                            text: mi6.text
+                            color: mi6.enabled ? root.themeMenuText : root.themeMenuTextMuted
+                            font.family: (root.uiFont && root.uiFont !== "") ? root.uiFont : "Segoe UI"
+                            font.pixelSize: 13
+                            verticalAlignment: Text.AlignVCenter
+                            elide: Text.ElideRight
+                            renderType: Text.NativeRendering
+                        }}
+                        background: Rectangle {{ anchors.fill: parent; anchors.margins: 2; radius: 4; color: mi6.highlighted && mi6.enabled ? root.themeMenuHover : "transparent" }}
                     }}
                     MenuItem {{ text: "Reset View"; enabled: false }}
-                    MenuSeparator {{ contentItem: Rectangle {{ implicitHeight: 1; color: "{stroke}" }} }}
+                    MenuSeparator {{ contentItem: Rectangle {{ implicitHeight: 1; color: "{stroke}"; opacity: 0.5 }} background: Item {{ implicitHeight: 9 }} }}
                     MenuItem {{ text: "Start Page"; enabled: true; onTriggered: {{ root.showStartPage = true }} }}
                 }}
                 Menu {{
                     id: helpMenu
-                    background: Rectangle {{ implicitWidth: 220; color: "{s200}"; border.width: 1; border.color: "{stroke}" }}
+                    topPadding: 6; bottomPadding: 6; leftPadding: 4; rightPadding: 4
+                    background: Rectangle {{ implicitWidth: 230; color: root.themeMenuBg; border.width: 1; border.color: "{stroke}"; radius: 6 }}
                     delegate: MenuItem {{
-                        id: mi7; implicitHeight: 28
-                        contentItem: Text {{ leftPadding: 10; text: mi7.text; color: mi7.enabled ? "{text}" : "{text_muted}"; font.family: root.uiFont; font.pixelSize: 12; verticalAlignment: Text.AlignVCenter }}
-                        background: Rectangle {{ color: mi7.highlighted ? "{hover}" : "transparent" }}
+                        id: mi7; implicitHeight: 30; leftPadding: 6; rightPadding: 6
+                        contentItem: Text {{
+                            leftPadding: 10; rightPadding: 10
+                            text: mi7.text
+                            color: mi7.enabled ? root.themeMenuText : root.themeMenuTextMuted
+                            font.family: (root.uiFont && root.uiFont !== "") ? root.uiFont : "Segoe UI"
+                            font.pixelSize: 13
+                            verticalAlignment: Text.AlignVCenter
+                            elide: Text.ElideRight
+                            renderType: Text.NativeRendering
+                        }}
+                        background: Rectangle {{ anchors.fill: parent; anchors.margins: 2; radius: 4; color: mi7.highlighted && mi7.enabled ? root.themeMenuHover : "transparent" }}
                     }}
+                    MenuItem {{ text: "Check for Updates..."; enabled: true; onTriggered: studio.check_for_updates(true) }}
+                    MenuItem {{ text: "View Releases on GitHub"; enabled: true; onTriggered: studio.open_release_page() }}
+                    MenuSeparator {{ contentItem: Rectangle {{ implicitHeight: 1; color: "{stroke}"; opacity: 0.5 }} background: Item {{ implicitHeight: 9 }} }}
                     MenuItem {{ text: "Documentation"; enabled: false }}
                     MenuItem {{ text: "About Rustblox Studio"; enabled: false }}
                 }}
@@ -3235,67 +4359,92 @@ ApplicationWindow {{
 
                 Item {{ Layout.fillWidth: true }}
                 Text {{ text: root.placeName + " - Rustblox Studio"; color: "{text_muted}"; font.family: root.uiFont; font.pixelSize: 12 }}
-                Item {{ width: 6 }}
+                Item {{ width: 10 }}
+
+                // Account / Sign in (top bar)
+                Rectangle {{
+                    implicitHeight: 24
+                    implicitWidth: accountTopRow.implicitWidth + 16
+                    radius: 4
+                    color: accountTopMa.containsMouse ? "{s200}" : "transparent"
+                    border.width: 0
+                    Row {{
+                        id: accountTopRow
+                        anchors.centerIn: parent
+                        spacing: 6
+                        Rectangle {{ width: 7; height: 7; radius: 3.5; anchors.verticalCenter: parent.verticalCenter; color: studio.login_busy ? "#FBBF24" : (studio.login_user !== "" ? "#7ED957" : "{text_muted}") }}
+                        Text {{
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: studio.login_busy ? "Signing in..." : (studio.login_user !== "" ? studio.login_user : "Sign in")
+                            color: studio.login_user !== "" ? "{text}" : "{text_muted}"
+                            font.family: root.uiFont
+                            font.pixelSize: 12
+                        }}
+                    }}
+                    MouseArea {{
+                        id: accountTopMa
+                        anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                        onClicked: {{
+                            if (studio.login_user !== "") studio.sign_out();
+                            else studio.login_roblox();
+                        }}
+                    }}
+                }}
+                Item {{ width: 2 }}
             }}
-            Rectangle {{ anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom; height: {stroke_w}; color: "{stroke}" }}
+            Rectangle {{ anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom; height: 1; color: "{stroke}" }}
         }}
 
-        // Ribbon tab strip
+        // Ribbon tab strip (hidden when not editing a place)
         Rectangle {{
             Layout.fillWidth: true
-            Layout.preferredHeight: 34
+            Layout.preferredHeight: root.showStartPage ? 0 : 32
+            visible: !root.showStartPage
             color: "{s100}"
             RowLayout {{
                 anchors.fill: parent
                 anchors.leftMargin: 8
-                anchors.bottomMargin: 0
-                spacing: 0
+                spacing: 2
                 Repeater {{
                     model: ribbonDef.tabOrder || []
-                    Item {{
+                    Rectangle {{
                         property bool active: root.activeTab === modelData
                         property var tab: root.tabById(modelData)
-                        Layout.preferredHeight: 34
-                        Layout.preferredWidth: tabLabel.implicitWidth + 22
-                        Rectangle {{
-                            anchors.fill: parent
-                            anchors.topMargin: 4
-                            anchors.bottomMargin: active ? 0 : 4
-                            radius: 4
-                            color: active ? "{s100}" : (tabMa.containsMouse ? "{hover}" : "transparent")
-                            border.width: active ? {stroke_w} : 0
-                            border.color: "{stroke}"
-                            // Cover bottom border of active tab so it blends into ribbon content
-                            Rectangle {{
-                                visible: active
-                                anchors.left: parent.left; anchors.right: parent.right
-                                anchors.bottom: parent.bottom; anchors.bottomMargin: -1
-                                height: 2
-                                color: "{s100}"
-                            }}
-                            Text {{
-                                id: tabLabel
-                                anchors.centerIn: parent
-                                anchors.verticalCenterOffset: active ? 0 : 0
-                                text: tab.label || modelData
-                                color: active ? "{text}" : "{text_muted}"
-                                font.family: active ? root.uiFontMedium : root.uiFont
-                                font.pixelSize: {tab_fs}
-                            }}
-                            MouseArea {{ id: tabMa; anchors.fill: parent; hoverEnabled: true; onClicked: {{ root.activeTab = modelData; studio.activeTab = modelData }} }}
+                        Layout.preferredHeight: 24
+                        Layout.preferredWidth: tabLabel.implicitWidth + 18
+                        radius: 3
+                        color: active ? "{s200}" : (tabMa.containsMouse ? "{hover}" : "transparent")
+                        border.width: 0
+                        Text {{
+                            id: tabLabel
+                            anchors.centerIn: parent
+                            text: tab.label || modelData
+                            color: active ? "{text}" : "{text_muted}"
+                            font.family: active ? root.uiFontMedium : root.uiFont
+                            font.pixelSize: {tab_fs}
                         }}
+                        // Subtle active indicator (no overlapping outline)
+                        Rectangle {{
+                            visible: active
+                            anchors.left: parent.left; anchors.right: parent.right
+                            anchors.bottom: parent.bottom; height: 2; radius: 1
+                            color: "{accent}"
+                        }}
+                        MouseArea {{ id: tabMa; anchors.fill: parent; hoverEnabled: true; onClicked: {{ root.activeTab = modelData; studio.activeTab = modelData }} }}
                     }}
                 }}
                 Item {{ Layout.fillWidth: true }}
             }}
-            Rectangle {{ anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom; height: {stroke_w}; color: "{stroke}"; z: -1 }}
+            Rectangle {{ anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom; height: 1; color: "{stroke}" }}
         }}
 
-        // Ribbon content
+        // Ribbon content (hidden when not editing a place)
         Rectangle {{
             id: ribbonArea
             Layout.fillWidth: true
-            Layout.preferredHeight: 96
+            Layout.preferredHeight: root.showStartPage ? 0 : 96
+            visible: !root.showStartPage
+            clip: true
             color: "{s100}"
             property var activeTabDef: root.tabById(root.activeTab)
 
@@ -3487,7 +4636,7 @@ ApplicationWindow {{
                         anchors.fill: parent
                         spacing: 0
 
-                        // Title bar + account chip
+                        // Title bar
                         Rectangle {{
                             Layout.fillWidth: true
                             Layout.preferredHeight: 28
@@ -3504,43 +4653,6 @@ ApplicationWindow {{
                                     font.pixelSize: 12
                                 }}
                                 Item {{ Layout.fillWidth: true }}
-                                Rectangle {{
-                                    implicitHeight: 20
-                                    implicitWidth: accountRow.implicitWidth + 16
-                                    radius: 10
-                                    color: accountMa.containsMouse ? "{s300}" : "transparent"
-                                    border.width: 1
-                                    border.color: studio.login_user !== "" ? "#3F7A46" : "{stroke}"
-                                    Row {{
-                                        id: accountRow
-                                        anchors.centerIn: parent
-                                        spacing: 5
-                                        Rectangle {{
-                                            width: 6
-                                            height: 6
-                                            radius: 3
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            color: studio.login_busy ? "#FBBF24" : (studio.login_user !== "" ? "#7ED957" : "{text_muted}")
-                                        }}
-                                        Text {{
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            text: studio.login_busy ? "Signing in..." : (studio.login_user !== "" ? studio.login_user : "Sign in")
-                                            color: studio.login_user !== "" ? "{text}" : "{text_muted}"
-                                            font.family: root.uiFont
-                                            font.pixelSize: 11
-                                        }}
-                                    }}
-                                    MouseArea {{
-                                        id: accountMa
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: {{
-                                            if (studio.login_user !== "") studio.sign_out();
-                                            else studio.login_roblox();
-                                        }}
-                                    }}
-                                }}
                             }}
                         }}
 
@@ -3670,7 +4782,7 @@ ApplicationWindow {{
                             topMargin: 4
                             leftMargin: 4
                             model: root.toolboxItems
-                            ScrollBar.vertical: ScrollBar {{ width: 8; policy: ScrollBar.AsNeeded }}
+                            ScrollBar.vertical: StudioScrollBar {{ width: 8 }}
                             delegate: Rectangle {{
                                 width: 104
                                 height: 114
@@ -3779,7 +4891,7 @@ ApplicationWindow {{
                                         : (insertMa.containsMouse ? "#3D7BFF" : "{accent}")
                                     Text {{
                                         anchors.centerIn: parent
-                                        text: studio.insert_busy ? "…" : "Insert"
+                                        text: studio.insert_busy ? "â€¦" : "Insert"
                                         color: studio.insert_busy ? "{text_muted}" : "white"
                                         font.family: root.uiFontMedium
                                         font.pixelSize: 11
@@ -3836,19 +4948,20 @@ ApplicationWindow {{
                                             property var dtab: modelData
                                             property bool active: root.activeDocTab === dtab.id
                                             Layout.preferredHeight: 26
-                                            Layout.preferredWidth: dtabRow.implicitWidth + 18
+                                            Layout.preferredWidth: dtabRow.implicitWidth + 30
                                             color: active ? "{s200}" : (dtabMa.containsMouse ? "{hover}" : "transparent")
-                                            border.width: active ? 1 : 0
-                                            border.color: "{stroke}"
+                                            border.width: 0
                                             Rectangle {{
                                                 visible: active
                                                 anchors.left: parent.left; anchors.right: parent.right
                                                 anchors.bottom: parent.bottom; height: 2
-                                                color: "{s200}"
+                                                color: "{accent}"
                                             }}
                                             Row {{
                                                 id: dtabRow
-                                                anchors.centerIn: parent
+                                                anchors.left: parent.left; anchors.leftMargin: 8
+                                                anchors.right: tabClose.left; anchors.rightMargin: 4
+                                                anchors.verticalCenter: parent.verticalCenter
                                                 spacing: 6
                                                 Image {{
                                                     width: 14; height: 14
@@ -3863,9 +4976,23 @@ ApplicationWindow {{
                                                     color: active ? "{text}" : "{text_muted}"
                                                     font.family: active ? root.uiFontMedium : root.uiFont
                                                     font.pixelSize: 12
+                                                    elide: Text.ElideRight
                                                 }}
                                             }}
-                                            MouseArea {{ id: dtabMa; anchors.fill: parent; hoverEnabled: true; onClicked: root.activeDocTab = dtab.id }}
+                                            MouseArea {{ id: dtabMa; anchors.fill: parent; anchors.rightMargin: 20; hoverEnabled: true; onClicked: root.activeDocTab = dtab.id }}
+                                            Rectangle {{
+                                                id: tabClose
+                                                width: 16; height: 16; radius: 3
+                                                anchors.right: parent.right; anchors.rightMargin: 4
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                color: tabCloseMa.containsMouse ? "#C94B4B" : "transparent"
+                                                Text {{ anchors.centerIn: parent; text: "×"; color: tabCloseMa.containsMouse ? "white" : "{text_muted}"; font.pixelSize: 12 }}
+                                                MouseArea {{
+                                                    id: tabCloseMa
+                                                    anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                                                    onClicked: root.closeDocTab(dtab.id)
+                                                }}
+                                            }}
                                         }}
                                     }}
                                     Item {{ Layout.fillWidth: true }}
@@ -3898,7 +5025,7 @@ ApplicationWindow {{
                                     property bool flying: false
                                     property bool pointerOver: false
                                     property bool embedded: studio.viewport_embedded
-                                    property bool covered: root.showStartPage || root.showSettings
+                                    property bool covered: root.showStartPage || root.showSettings || studio.update_visible
                                     // The embedded child window floats above QML, so it must
                                     // never sit under an overlay (start page / settings).
                                     onCoveredChanged: studio.viewport_show(visible && !covered && embedded && width > 8 && height > 8)
@@ -3971,7 +5098,7 @@ ApplicationWindow {{
                                             else if (viewportRoot.draggingOrbit && (mouse.buttons & (Qt.LeftButton|Qt.RightButton))) studio.orbit_camera(dx, dy);
                                         }}
                                         onReleased: {{ viewportRoot.draggingOrbit = false; viewportRoot.draggingPan = false; viewportRoot.flying = false; studio.end_interaction(); }}
-                                        onHoveredChanged: viewportRoot.pointerOver = hovered
+                                        onHoveredChanged: viewportRoot.pointerOver = viewportMouse.containsMouse
                                         onWheel: function(wheel) {{ studio.begin_interaction(); studio.zoom_camera(wheel.angleDelta.y); wheel.accepted = true; studio.end_interaction(); }}
                                     }}
 
@@ -4028,42 +5155,25 @@ ApplicationWindow {{
                                         anchors.top: parent.top; anchors.left: parent.left; anchors.margins: 8
                                         spacing: 6
                                         Rectangle {{
-                                            radius: 4; color: "#2D5A27CC"; border.width: 1; border.color: "#4A8A42"
-                                            implicitHeight: 24; implicitWidth: nativeLabel.implicitWidth + 16
-                                            Text {{ id: nativeLabel; anchors.centerIn: parent; text: "Detach 3D"; color: "#E8F5E8"; font.family: root.uiFont; font.pixelSize: 11 }}
+                                            radius: 4
+                                            color: studio.playing ? "#7A2E2ECC" : "#2D5A27CC"
+                                            border.width: 1
+                                            border.color: studio.playing ? "#B85C5C" : "#4A8A42"
+                                            implicitHeight: 24; implicitWidth: playLabel.implicitWidth + 18
+                                            Text {{ id: playLabel; anchors.centerIn: parent; text: studio.playing ? "Stop (F5)" : "Play (F5)"; color: "#FFFFFF"; font.family: root.uiFont; font.pixelSize: 11 }}
                                             MouseArea {{
                                                 anchors.fill: parent
                                                 hoverEnabled: true
-                                                onClicked: studio.open_native_viewport()
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: studio.set_playing(!studio.playing)
                                             }}
                                         }}
                                         Rectangle {{
-                                            radius: 4; color: "#15161ACC"; border.width: 1; border.color: "{stroke}"
-                                            implicitHeight: 24; implicitWidth: techLabel.implicitWidth + 16
-                                            Text {{ id: techLabel; anchors.centerIn: parent; text: "Lighting: " + (studio.lighting_technology && studio.lighting_technology.length ? studio.lighting_technology : "Future"); color: "{text}"; font.family: root.uiFont; font.pixelSize: 11 }}
-                                            MouseArea {{
-                                                anchors.fill: parent
-                                                onClicked: {{
-                                                    var modes = ["Future","ShadowMap","Compatibility","Voxel","Legacy"];
-                                                    var cur = studio.lighting_technology || "Future";
-                                                    var idx = modes.indexOf(cur); if (idx < 0) idx = 0;
-                                                    studio.lighting_technology = modes[(idx + 1) % modes.length];
-                                                }}
-                                            }}
-                                        }}
-                                        Rectangle {{
-                                            radius: 4; color: "#15161ACC"; border.width: 1; border.color: "{stroke}"
-                                            implicitHeight: 24; implicitWidth: aaLabel.implicitWidth + 16
-                                            Text {{ id: aaLabel; anchors.centerIn: parent; text: (studio.aa_mode && studio.aa_mode.length ? studio.aa_mode : "AA Off"); color: "{text}"; font.family: root.uiFont; font.pixelSize: 11 }}
-                                            MouseArea {{
-                                                anchors.fill: parent
-                                                onClicked: {{
-                                                    var modes = ["AA Off","MSAA 4x"];
-                                                    var cur = studio.aa_mode || "AA Off";
-                                                    var idx = modes.indexOf(cur); if (idx < 0) idx = 0;
-                                                    studio.aa_mode = modes[(idx + 1) % modes.length];
-                                                }}
-                                            }}
+                                            radius: 4; color: "{s200}"; border.width: 0
+                                            implicitHeight: 24; implicitWidth: nativeLabel.implicitWidth + 16
+                                            visible: false // moved to Settings; keep code path available if needed
+                                            Text {{ id: nativeLabel; anchors.centerIn: parent; text: "Detach 3D"; color: "{text}"; font.family: root.uiFont; font.pixelSize: 11 }}
+                                            MouseArea {{ anchors.fill: parent; onClicked: studio.open_native_viewport() }}
                                         }}
                                         Rectangle {{
                                             radius: 4; color: "#15161ACC"; border.width: 1; border.color: "{stroke}"
@@ -4087,12 +5197,23 @@ ApplicationWindow {{
                                     ColumnLayout {{
                                         anchors.fill: parent; spacing: 0
                                         Rectangle {{
-                                            Layout.fillWidth: true; Layout.preferredHeight: 22; color: "{s100}"
-                                            Text {{
-                                                anchors.left: parent.left; anchors.leftMargin: 10
-                                                anchors.verticalCenter: parent.verticalCenter
-                                                text: (docContent.activeTabObj ? docContent.activeTabObj.title : "Script") + " — Luau"
-                                                color: "#6A6F81"; font.family: root.uiFont; font.pixelSize: 11
+                                            Layout.fillWidth: true; Layout.preferredHeight: 26; color: "{s100}"
+                                            RowLayout {{
+                                                anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 8; spacing: 8
+                                                Text {{
+                                                    text: (docContent.activeTabObj ? docContent.activeTabObj.title : "Script") + " - Luau"
+                                                    color: "#B0B0B0"; font.family: root.uiFont; font.pixelSize: 11
+                                                }}
+                                                Item {{ Layout.fillWidth: true }}
+                                                Text {{ text: "Font"; color: "{text_muted}"; font.family: root.uiFont; font.pixelSize: 10 }}
+                                                Rectangle {{ width: 22; height: 18; radius: 3; color: zoomOutMa.containsMouse ? "{s300}" : "{s200}"; Text {{ anchors.centerIn: parent; text: "-"; color: "{text}"; font.pixelSize: 12 }} MouseArea {{ id: zoomOutMa; anchors.fill: parent; hoverEnabled: true; onClicked: root.editorFontSize = Math.max(8, root.editorFontSize - 1) }} }}
+                                                Text {{ text: Math.round(root.editorFontSize); color: "{text}"; font.family: root.uiFont; font.pixelSize: 11; Layout.preferredWidth: 18; horizontalAlignment: Text.AlignHCenter }}
+                                                Rectangle {{ width: 22; height: 18; radius: 3; color: zoomInMa.containsMouse ? "{s300}" : "{s200}"; Text {{ anchors.centerIn: parent; text: "+"; color: "{text}"; font.pixelSize: 12 }} MouseArea {{ id: zoomInMa; anchors.fill: parent; hoverEnabled: true; onClicked: root.editorFontSize = Math.min(48, root.editorFontSize + 1) }} }}
+                                                Rectangle {{
+                                                    width: 56; height: 18; radius: 3; color: fontFamilyMa.containsMouse ? "{s300}" : "{s200}"
+                                                    Text {{ anchors.centerIn: parent; text: root.editorFontFamily === root.monoFont ? "Mono" : "UI"; color: "{text}"; font.family: root.uiFont; font.pixelSize: 10 }}
+                                                    MouseArea {{ id: fontFamilyMa; anchors.fill: parent; hoverEnabled: true; onClicked: root.editorFontFamily = (root.editorFontFamily === root.monoFont) ? root.uiFont : root.monoFont }}
+                                                }}
                                             }}
                                         }}
                                         Rectangle {{
@@ -4105,8 +5226,8 @@ ApplicationWindow {{
                                                 contentWidth: scriptRow.implicitWidth
                                                 contentHeight: scriptRow.implicitHeight
                                                 boundsBehavior: Flickable.StopAtBounds
-                                                ScrollBar.vertical: ScrollBar {{ policy: ScrollBar.AsNeeded; width: 10 }}
-                                                ScrollBar.horizontal: ScrollBar {{ policy: ScrollBar.AsNeeded; height: 10 }}
+                                                ScrollBar.vertical: StudioScrollBar {{ width: 10 }}
+                                                ScrollBar.horizontal: StudioScrollBar {{ height: 10 }}
 
                                                 Row {{
                                                     id: scriptRow
@@ -4147,8 +5268,8 @@ ApplicationWindow {{
                                                             width: Math.max(0, editorStack.width - scriptEditor.leftPadding - scriptEditor.rightPadding)
                                                             text: root.highlightLuau(scriptEditor.text)
                                                             textFormat: Text.RichText
-                                                            font.family: root.monoFont
-                                                            font.pixelSize: 12
+                                                            font.family: root.editorFontFamily
+                                                            font.pixelSize: root.editorFontSize
                                                             wrapMode: Text.NoWrap
                                                         }}
                                                         TextArea {{
@@ -4157,9 +5278,9 @@ ApplicationWindow {{
                                                             text: docContent.activeTabObj ? (docContent.activeTabObj.source || "") : ""
                                                             color: "transparent"
                                                             selectedTextColor: "#FFFFFF"
-                                                            selectionColor: "#13235D"
-                                                            font.family: root.monoFont
-                                                            font.pixelSize: 12
+                                                            selectionColor: "#264F78"
+                                                            font.family: root.editorFontFamily
+                                                            font.pixelSize: root.editorFontSize
                                                             placeholderText: "-- Luau script"
                                                             placeholderTextColor: "#6A6F81"
                                                             background: Rectangle {{ color: "transparent" }}
@@ -4167,6 +5288,13 @@ ApplicationWindow {{
                                                             wrapMode: TextEdit.NoWrap
                                                             leftPadding: 12; topPadding: 10; rightPadding: 12; bottomPadding: 10
                                                             tabStopDistance: 28
+                                                            Keys.onPressed: function(event) {{
+                                                                if (event.modifiers & Qt.ControlModifier) {{
+                                                                    if (event.key === Qt.Key_Equal || event.key === Qt.Key_Plus) {{ root.editorFontSize = Math.min(48, root.editorFontSize + 1); event.accepted = true; }}
+                                                                    else if (event.key === Qt.Key_Minus) {{ root.editorFontSize = Math.max(8, root.editorFontSize - 1); event.accepted = true; }}
+                                                                    else if (event.key === Qt.Key_0) {{ root.editorFontSize = 12; event.accepted = true; }}
+                                                                }}
+                                                            }}
                                                         }}
                                                         Rectangle {{
                                                             visible: scriptEditor.activeFocus
@@ -4220,7 +5348,7 @@ ApplicationWindow {{
                                 clip: true
                                 model: root.consoleLines
                                 boundsBehavior: Flickable.StopAtBounds
-                                ScrollBar.vertical: ScrollBar {{ policy: ScrollBar.AsNeeded; width: 10 }}
+                                ScrollBar.vertical: StudioScrollBar {{ width: 10 }}
                                 delegate: Rectangle {{
                                     width: consoleList.width
                                     height: Math.max(20, msgRow.implicitHeight + 6)
@@ -4244,7 +5372,7 @@ ApplicationWindow {{
                                             }}
                                         }}
                                         Rectangle {{ width: 1; height: Math.max(16, msgText.implicitHeight); color: "{stroke}"; opacity: 0.4 }}
-                                        Text {{
+                                        TextEdit {{
                                             id: msgText
                                             width: msgRow.width - 49
                                             leftPadding: 8; rightPadding: 8
@@ -4252,7 +5380,11 @@ ApplicationWindow {{
                                             color: line.level === "error" ? "#F87171" : (line.level === "warn" ? "#FBBF24" : (line.level === "info" ? "#60A5FA" : "{text}"))
                                             font.family: root.monoFont
                                             font.pixelSize: 12
-                                            wrapMode: Text.WrapAnywhere
+                                            wrapMode: TextEdit.WrapAnywhere
+                                            readOnly: true
+                                            selectByMouse: true
+                                            selectionColor: "{accent}"
+                                            selectedTextColor: "#ffffff"
                                         }}
                                     }}
                                 }}
@@ -4394,7 +5526,7 @@ ApplicationWindow {{
                                 contentWidth: width
                                 contentHeight: explorerColumn.implicitHeight
                                 boundsBehavior: Flickable.StopAtBounds
-                                ScrollBar.vertical: ScrollBar {{ policy: ScrollBar.AsNeeded; width: 10 }}
+                                ScrollBar.vertical: StudioScrollBar {{ width: 10 }}
 
                                 Column {{
                                     id: explorerColumn
@@ -4482,7 +5614,7 @@ ApplicationWindow {{
                                     contentWidth: width
                                     contentHeight: propsCol.implicitHeight
                                     boundsBehavior: Flickable.StopAtBounds
-                                    ScrollBar.vertical: ScrollBar {{ policy: ScrollBar.AsNeeded; width: 10 }}
+                                    ScrollBar.vertical: StudioScrollBar {{ width: 10 }}
 
                                     Column {{
                                         id: propsCol
@@ -4736,7 +5868,7 @@ ApplicationWindow {{
             Layout.preferredHeight: 24
             color: "{s100}"
             Rectangle {{ anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top; height: {stroke_w}; color: "{stroke}" }}
-            Text {{ anchors.left: parent.left; anchors.leftMargin: 10; anchors.verticalCenter: parent.verticalCenter; text: "Ready  |  Edit  |  API dump: properties + all enums loaded"; color: "{text_muted}"; font.family: root.uiFont; font.pixelSize: 12 }}
+            Text {{ anchors.left: parent.left; anchors.leftMargin: 10; anchors.verticalCenter: parent.verticalCenter; text: "Ready  |  " + (root.showStartPage ? "Start Page" : "Edit") + "  |  Renderer: wgpu  |  Scripting: Luau"; color: "{text_muted}"; font.family: root.uiFont; font.pixelSize: 12 }}
         }}
     }}
 
@@ -4758,7 +5890,7 @@ ApplicationWindow {{
             clip: true
             model: enumPopup.items || []
             boundsBehavior: Flickable.StopAtBounds
-            ScrollBar.vertical: ScrollBar {{ policy: ScrollBar.AsNeeded; width: 8 }}
+            ScrollBar.vertical: StudioScrollBar {{ width: 8 }}
             delegate: Rectangle {{
                 width: enumList.width
                 height: 20
@@ -4914,9 +6046,9 @@ ApplicationWindow {{
         focus: true
         width: 240
         height: 340
-        padding: 6
+        topPadding: 8; bottomPadding: 8; leftPadding: 8; rightPadding: 8
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-        background: Rectangle {{ color: "{s200}"; border.width: 1; border.color: "{stroke}"; radius: 4 }}
+        background: Rectangle {{ color: root.themeMenuBg; border.width: 1; border.color: "{stroke}"; radius: 6 }}
         onOpened: {{
             filter = "";
             if (insertSearchInput) {{
@@ -4926,21 +6058,22 @@ ApplicationWindow {{
         }}
         Column {{
             width: parent.width
-            spacing: 6
+            spacing: 8
             Rectangle {{
                 width: parent.width
-                height: 24
-                radius: 3
-                color: "{bg}"
+                height: 28
+                radius: 4
+                color: "{s200}"
                 border.width: 1
                 border.color: insertSearchInput.activeFocus ? "{accent}" : "{stroke}"
                 TextInput {{
                     id: insertSearchInput
-                    anchors.fill: parent; anchors.leftMargin: 6; anchors.rightMargin: 6
+                    anchors.fill: parent; anchors.leftMargin: 8; anchors.rightMargin: 8
                     verticalAlignment: TextInput.AlignVCenter
-                    color: "{text}"
+                    color: root.themeMenuText
                     selectionColor: "{accent}"; selectedTextColor: "#ffffff"
-                    font.family: root.uiFont; font.pixelSize: 11
+                    font.family: (root.uiFont && root.uiFont !== "") ? root.uiFont : "Segoe UI"
+                    font.pixelSize: 12
                     selectByMouse: true; clip: true
                     onTextChanged: explorerInsertMenu.filter = text
                     Keys.onEscapePressed: explorerInsertMenu.close()
@@ -4955,27 +6088,32 @@ ApplicationWindow {{
                         verticalAlignment: Text.AlignVCenter
                         text: "Search objects"
                         visible: !parent.text && !parent.activeFocus
-                        color: "{text_muted}"; font.family: root.uiFont; font.pixelSize: 11
+                        color: root.themeMenuTextMuted
+                        font.family: (root.uiFont && root.uiFont !== "") ? root.uiFont : "Segoe UI"
+                        font.pixelSize: 12
+                        renderType: Text.NativeRendering
                     }}
                 }}
             }}
-            Rectangle {{ width: parent.width; height: 1; color: "{stroke}" }}
+            Rectangle {{ width: parent.width; height: 1; color: "{stroke}"; opacity: 0.5 }}
             ListView {{
                 id: insertList
                 width: parent.width
-                height: explorerInsertMenu.height - 48
+                height: explorerInsertMenu.height - 58
                 clip: true
+                spacing: 1
                 model: root.filteredInsertables(explorerInsertMenu.filter)
                 boundsBehavior: Flickable.StopAtBounds
-                ScrollBar.vertical: ScrollBar {{ policy: ScrollBar.AsNeeded; width: 8 }}
+                ScrollBar.vertical: StudioScrollBar {{ width: 8 }}
                 delegate: Rectangle {{
                     width: insertList.width
-                    height: 24
-                    color: insertItemMa.containsMouse ? "{hover}" : "transparent"
+                    height: 26
+                    radius: 4
+                    color: insertItemMa.containsMouse ? "{s300}" : "transparent"
                     Row {{
-                        anchors.left: parent.left; anchors.leftMargin: 4
+                        anchors.left: parent.left; anchors.leftMargin: 6
                         anchors.verticalCenter: parent.verticalCenter
-                        spacing: 6
+                        spacing: 8
                         Image {{
                             width: 14; height: 14
                             anchors.verticalCenter: parent.verticalCenter
@@ -4987,14 +6125,17 @@ ApplicationWindow {{
                         Text {{
                             anchors.verticalCenter: parent.verticalCenter
                             text: modelData
-                            color: "{text}"; font.family: root.uiFont; font.pixelSize: 12
+                            color: root.themeMenuText
+                            font.family: (root.uiFont && root.uiFont !== "") ? root.uiFont : "Segoe UI"
+                            font.pixelSize: 12
                             elide: Text.ElideRight
+                            renderType: Text.NativeRendering
                         }}
                     }}
                     MouseArea {{
                         id: insertItemMa
                         anchors.fill: parent
-                        hoverEnabled: true
+                        hoverEnabled: true; cursorShape: Qt.PointingHandCursor
                         onClicked: {{
                             root.insertObject(modelData);
                             explorerInsertMenu.close();
@@ -5007,16 +6148,33 @@ ApplicationWindow {{
 
     Menu {{
         id: explorerContextMenu
-        background: Rectangle {{ implicitWidth: 220; color: "{s200}"; border.width: 1; border.color: "{stroke}" }}
+        topPadding: 6; bottomPadding: 6; leftPadding: 4; rightPadding: 4
+        background: Rectangle {{ implicitWidth: 230; color: root.themeMenuBg; border.width: 1; border.color: "{stroke}"; radius: 6 }}
         delegate: MenuItem {{
-            id: exMi; implicitHeight: 26
-            contentItem: Text {{ leftPadding: 10; text: exMi.text; color: exMi.enabled ? "{text}" : "{text_muted}"; font.family: root.uiFont; font.pixelSize: 12; verticalAlignment: Text.AlignVCenter }}
-            background: Rectangle {{ color: exMi.highlighted ? "{hover}" : "transparent" }}
+            id: exMi; implicitHeight: 30; leftPadding: 6; rightPadding: 6
+            contentItem: Text {{
+                leftPadding: 10; rightPadding: 10
+                text: exMi.text
+                color: exMi.enabled ? root.themeMenuText : root.themeMenuTextMuted
+                font.family: (root.uiFont && root.uiFont !== "") ? root.uiFont : "Segoe UI"
+                font.pixelSize: 13
+                verticalAlignment: Text.AlignVCenter
+                elide: Text.ElideRight
+                renderType: Text.NativeRendering
+            }}
+            background: Rectangle {{ anchors.fill: parent; anchors.margins: 2; radius: 4; color: exMi.highlighted && exMi.enabled ? root.themeMenuHover : "transparent" }}
         }}
+        MenuItem {{
+            text: "Insert Object..."
+            enabled: root.explorerSelected !== ""
+            onTriggered: root.openExplorerInsert(root.insertAnchorX, root.insertAnchorY)
+        }}
+        MenuSeparator {{ contentItem: Rectangle {{ implicitHeight: 1; color: "{stroke}"; opacity: 0.5 }} background: Item {{ implicitHeight: 9 }} }}
         MenuItem {{ text: "Cut"; enabled: root.explorerSelected !== ""; onTriggered: root.cutSelected() }}
         MenuItem {{ text: "Copy"; enabled: root.explorerSelected !== ""; onTriggered: root.copySelected() }}
         MenuItem {{ text: "Paste Into"; enabled: root.explorerClipboard !== null; onTriggered: root.pasteClipboard() }}
         MenuItem {{ text: "Duplicate"; enabled: root.explorerSelected !== ""; onTriggered: root.duplicateSelected() }}
+        MenuSeparator {{ contentItem: Rectangle {{ implicitHeight: 1; color: "{stroke}"; opacity: 0.5 }} background: Item {{ implicitHeight: 9 }} }}
         MenuItem {{ text: "Delete"; enabled: root.explorerSelected !== ""; onTriggered: root.deleteSelected() }}
     }}
 
@@ -5222,11 +6380,58 @@ ApplicationWindow {{
                         elide: Text.ElideRight
                     }}
 
+                    Rectangle {{ Layout.fillWidth: true; Layout.preferredHeight: 1; color: "{stroke}" }}
+
+                    Text {{
+                        text: "Viewport & 3D"
+                        color: "{text}"
+                        font.family: root.uiFontMedium
+                        font.pixelSize: 14
+                    }}
+                    RowLayout {{
+                        Layout.fillWidth: true; spacing: 10
+                        Text {{ text: "Lighting technology"; color: "{text_muted}"; font.family: root.uiFont; font.pixelSize: 12; Layout.preferredWidth: 140 }}
+                        Rectangle {{
+                            Layout.preferredWidth: 140; Layout.preferredHeight: 26; radius: 3; color: "{s200}"
+                            Text {{ anchors.centerIn: parent; text: studio.lighting_technology && studio.lighting_technology.length ? studio.lighting_technology : "Future"; color: "{text}"; font.family: root.uiFont; font.pixelSize: 11 }}
+                            MouseArea {{ anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: {{ var modes = ["Future","ShadowMap","Compatibility","Voxel","Legacy"]; var cur = studio.lighting_technology || "Future"; var idx = modes.indexOf(cur); if (idx < 0) idx = 0; studio.lighting_technology = modes[(idx + 1) % modes.length]; }} }}
+                        }}
+                        Item {{ Layout.fillWidth: true }}
+                    }}
+                    RowLayout {{
+                        Layout.fillWidth: true; spacing: 10
+                        Text {{ text: "Anti-aliasing"; color: "{text_muted}"; font.family: root.uiFont; font.pixelSize: 12; Layout.preferredWidth: 140 }}
+                        Rectangle {{
+                            Layout.preferredWidth: 140; Layout.preferredHeight: 26; radius: 3; color: "{s200}"
+                            Text {{ anchors.centerIn: parent; text: studio.aa_mode && studio.aa_mode.length ? studio.aa_mode : "AA Off"; color: "{text}"; font.family: root.uiFont; font.pixelSize: 11 }}
+                            MouseArea {{ anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: {{ var modes = ["AA Off","MSAA 4x"]; var cur = studio.aa_mode || "AA Off"; var idx = modes.indexOf(cur); if (idx < 0) idx = 0; studio.aa_mode = modes[(idx + 1) % modes.length]; }} }}
+                        }}
+                        Item {{ Layout.fillWidth: true }}
+                    }}
+
+                    Rectangle {{ Layout.fillWidth: true; Layout.preferredHeight: 1; color: "{stroke}" }}
+
+                    Text {{
+                        text: "Script Editor"
+                        color: "{text}"
+                        font.family: root.uiFontMedium
+                        font.pixelSize: 14
+                    }}
+                    RowLayout {{
+                        Layout.fillWidth: true; spacing: 10
+                        Text {{ text: "Font size"; color: "{text_muted}"; font.family: root.uiFont; font.pixelSize: 12; Layout.preferredWidth: 140 }}
+                        Rectangle {{ width: 28; height: 24; radius: 3; color: "{s200}"; Text {{ anchors.centerIn: parent; text: "-"; color: "{text}" }} MouseArea {{ anchors.fill: parent; onClicked: root.editorFontSize = Math.max(8, root.editorFontSize - 1) }} }}
+                        Text {{ text: Math.round(root.editorFontSize) + " px"; color: "{text}"; font.family: root.uiFont; font.pixelSize: 12; Layout.preferredWidth: 50 }}
+                        Rectangle {{ width: 28; height: 24; radius: 3; color: "{s200}"; Text {{ anchors.centerIn: parent; text: "+"; color: "{text}" }} MouseArea {{ anchors.fill: parent; onClicked: root.editorFontSize = Math.min(48, root.editorFontSize + 1) }} }}
+                        Rectangle {{ width: 80; height: 24; radius: 3; color: "{s200}"; Text {{ anchors.centerIn: parent; text: root.editorFontFamily === root.monoFont ? "Monospace" : "UI Sans"; color: "{text}"; font.family: root.uiFont; font.pixelSize: 11 }} MouseArea {{ anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.editorFontFamily = (root.editorFontFamily === root.monoFont) ? root.uiFont : root.monoFont }} }}
+                        Item {{ Layout.fillWidth: true }}
+                    }}
+
                     Item {{ Layout.fillHeight: true }}
 
                     Text {{
                         Layout.fillWidth: true
-                        text: "Create a key at create.roblox.com \u203a Credentials \u203a API Keys with the Legacy Assets \u203a Manage permission (legacy-asset:manage) \u2014 asset:read only grants metadata. The key must belong to your user account; group-owned keys cannot download content."
+                        text: "Open Cloud key: used for Toolbox asset downloads. Create a key at create.roblox.com → Credentials → API Keys with Legacy Assets › Manage (legacy-asset:manage). The key is stored in Windows Credential Manager and never written to place files or logs."
                         color: "{text_muted}"
                         font.family: root.uiFont
                         font.pixelSize: 10
@@ -5412,16 +6617,14 @@ ApplicationWindow {{
         }}
     }}
 
-    // Esc closes the key dialog first, then Settings.
+    // Esc closes dialogs / overlays.
     Shortcut {{
         sequence: "Escape"
-        enabled: root.showSettings
+        enabled: root.showOpenDialog || root.showSettings
         onActivated: {{
-            if (root.showOpenCloudDialog) {{
-                root.closeOpenCloudDialog();
-            }} else {{
-                root.closeSettings();
-            }}
+            if (root.showOpenDialog) root.closeFileDialog();
+            else if (root.showOpenCloudDialog) root.closeOpenCloudDialog();
+            else root.closeSettings();
         }}
     }}
 
@@ -5431,11 +6634,58 @@ ApplicationWindow {{
     Shortcut {{ sequence: "Ctrl+D"; enabled: !root.showStartPage && !root.showSettings && root.explorerSelected !== ""; onActivated: root.duplicateSelected() }}
     Shortcut {{ sequence: "Delete"; enabled: !root.showStartPage && !root.showSettings && root.explorerSelected !== ""; onActivated: root.deleteSelected() }}
 
+    // Tool keybinds (1-5) and playtest
+    Shortcut {{ sequence: "1"; enabled: !root.showStartPage && !root.showSettings; onActivated: root.ribbonControl("Select") }}
+    Shortcut {{ sequence: "2"; enabled: !root.showStartPage && !root.showSettings; onActivated: root.ribbonControl("Move") }}
+    Shortcut {{ sequence: "3"; enabled: !root.showStartPage && !root.showSettings; onActivated: root.ribbonControl("Scale") }}
+    Shortcut {{ sequence: "4"; enabled: !root.showStartPage && !root.showSettings; onActivated: root.ribbonControl("Rotate") }}
+    Shortcut {{ sequence: "5"; enabled: !root.showStartPage && !root.showSettings; onActivated: root.ribbonControl("Transform") }}
+    Shortcut {{ sequence: "F5"; enabled: !root.showStartPage && !root.showSettings; onActivated: studio.set_playing(!studio.playing) }}
+
+    // Open from File dialog (path-based fallback; native picker not wired in qmetaobject bootstrap)
+    Rectangle {{
+        anchors.fill: parent
+        visible: root.showOpenDialog
+        z: 450
+        color: "#99000000"
+        MouseArea {{ anchors.fill: parent; onClicked: root.closeFileDialog() }}
+        Rectangle {{
+            width: 560; height: 170; radius: 6
+            color: "{s200}"; border.width: 0
+            anchors.centerIn: parent
+            MouseArea {{ anchors.fill: parent }}
+            ColumnLayout {{
+                anchors.fill: parent; anchors.margins: 16; spacing: 10
+                Text {{ text: "Open from File"; color: "{text}"; font.family: root.uiFontMedium; font.pixelSize: 14 }}
+                Text {{ text: "Enter a local place path (.rbxl, .rbxlx, .rustblox.json)."; color: "{text_muted}"; font.family: root.uiFont; font.pixelSize: 11; wrapMode: Text.WordWrap; Layout.fillWidth: true }}
+                Rectangle {{
+                    Layout.fillWidth: true; Layout.preferredHeight: 32; radius: 4
+                    color: "{s100}"; border.width: 1; border.color: openPathInput.activeFocus ? "{accent}" : "{stroke}"
+                    TextInput {{
+                        id: openPathInput
+                        anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10
+                        verticalAlignment: Text.AlignVCenter
+                        color: "{text}"; selectionColor: "{accent}"; selectedTextColor: "#ffffff"
+                        font.family: root.uiFont; font.pixelSize: 12
+                        selectByMouse: true; clip: true
+                        onAccepted: root.submitOpenFileDialog()
+                    }}
+                }}
+                RowLayout {{
+                    Layout.fillWidth: true
+                    Item {{ Layout.fillWidth: true }}
+                    Rectangle {{ width: 80; height: 28; radius: 4; color: cancelOpenMa.containsMouse ? "{s300}" : "transparent"; border.width: 1; border.color: "{stroke}"; Text {{ anchors.centerIn: parent; text: "Cancel"; color: "{text}"; font.family: root.uiFont; font.pixelSize: 11 }} MouseArea {{ id: cancelOpenMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.closeFileDialog() }} }}
+                    Rectangle {{ width: 80; height: 28; radius: 4; color: openNowMa.containsMouse ? "#3D7BFF" : "{accent}"; Text {{ anchors.centerIn: parent; text: "Open"; color: "white"; font.family: root.uiFontMedium; font.pixelSize: 11 }} MouseArea {{ id: openNowMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.submitOpenFileDialog() }} }}
+                }}
+            }}
+        }}
+    }}
+
         // Start page overlay (shown on launch; exact-to-Roblox start page structure)
     Rectangle {{
         id: startPage
         anchors.fill: parent
-        anchors.topMargin: ribbonArea.mapToItem(null, 0, 0).y + ribbonArea.height
+        anchors.topMargin: 32
         anchors.bottomMargin: 24
         visible: root.showStartPage
         z: 200
@@ -5601,7 +6851,7 @@ ApplicationWindow {{
                         contentWidth: width
                         contentHeight: contentCol.implicitHeight
                         boundsBehavior: Flickable.StopAtBounds
-                        ScrollBar.vertical: ScrollBar {{ policy: ScrollBar.AsNeeded; width: 10 }}
+                        ScrollBar.vertical: StudioScrollBar {{ width: 10 }}
 
                         Column {{
                             id: contentCol
@@ -5684,7 +6934,7 @@ ApplicationWindow {{
                                         anchors.verticalCenter: parent.verticalCenter
                                         Row {{
                                             anchors.centerIn: parent; spacing: 6
-                                            Text {{ text: studio.experiences_busy ? "…" : "Refresh"; color: "{text}"; font.family: root.uiFont; font.pixelSize: 12 }}
+                                            Text {{ text: studio.experiences_busy ? "â€¦" : "Refresh"; color: "{text}"; font.family: root.uiFont; font.pixelSize: 12 }}
                                         }}
                                         MouseArea {{
                                             id: expRefMa; anchors.fill: parent; hoverEnabled: true
@@ -5697,7 +6947,7 @@ ApplicationWindow {{
                                 Text {{
                                     width: parent.width; wrapMode: Text.Wrap
                                     visible: studio.place_busy || (studio.place_status || "") !== "" || studio.experiences_busy || (root.experiencesStatus || "") !== ""
-                                    text: studio.place_busy ? (studio.place_status || "Opening place…") : ((studio.place_status || "") !== "" ? studio.place_status : (root.experiencesStatus || ""))
+                                    text: studio.place_busy ? (studio.place_status || "Opening placeâ€¦") : ((studio.place_status || "") !== "" ? studio.place_status : (root.experiencesStatus || ""))
                                     color: "{text_muted}"; font.family: root.uiFont; font.pixelSize: 12
                                 }}
 
@@ -5768,7 +7018,7 @@ ApplicationWindow {{
                                                         }}
                                                         Text {{
                                                             width: parent.width
-                                                            text: "Universe " + (modelData.universe_id || "") + " · Place " + (modelData.root_place_id || "")
+                                                            text: "Universe " + (modelData.universe_id || "") + " Â· Place " + (modelData.root_place_id || "")
                                                             color: "{text_muted}"; font.family: root.uiFont; font.pixelSize: 10
                                                             elide: Text.ElideRight
                                                         }}
@@ -5807,9 +7057,219 @@ ApplicationWindow {{
             }}
         }}
     }}
+
+    // GitHub auto-update screen (silent launch check + Help > Check for Updates...)
+    Rectangle {{
+        id: updateScreen
+        anchors.fill: parent
+        z: 500
+        visible: studio.update_visible
+        color: "{bg}"
+
+        readonly property real fraction: studio.update_progress < 0 ? 0 : Math.max(0, Math.min(1, studio.update_progress))
+        readonly property bool installing: studio.update_stage === "installing"
+
+        // Swallow clicks so the editor underneath stays inert.
+        MouseArea {{ anchors.fill: parent }}
+
+        // Quiet vertical wash so the logo sits on its own stage.
+        Rectangle {{
+            anchors.fill: parent
+            gradient: Gradient {{
+                GradientStop {{ position: 0.0; color: root.isDarkTheme ? "#101116" : "#F2F4F7" }}
+                GradientStop {{ position: 0.55; color: "{bg}" }}
+                GradientStop {{ position: 1.0; color: "{bg}" }}
+            }}
+        }}
+
+        Column {{
+            id: updateBody
+            width: Math.min(620, updateScreen.width - 96)
+            anchors.centerIn: parent
+            anchors.verticalCenterOffset: -26
+            spacing: 16
+
+            Image {{
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: 108; height: 108
+                source: "{studio_logo}"
+                fillMode: Image.PreserveAspectFit
+                smooth: true; mipmap: true
+                visible: "{studio_logo}" !== ""
+            }}
+
+            Text {{
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: {{
+                    if (studio.update_stage === "current") return "You're up to date";
+                    if (studio.update_stage === "ready") return "Update ready to install";
+                    if (studio.update_stage === "error") return "Update check failed";
+                    return "Updating Rustblox Studio";
+                }}
+                color: "{text}"
+                font.family: root.uiFontBold
+                font.pixelSize: 26
+            }}
+
+            Text {{
+                anchors.horizontalCenter: parent.horizontalCenter
+                visible: studio.update_stage === "downloading" || studio.update_stage === "ready" || studio.update_stage === "installing"
+                text: "v" + root.appVersion + "  \u2192  v" + (studio.update_version !== "" ? studio.update_version : "?")
+                color: "{text_muted}"
+                font.family: root.monoFont
+                font.pixelSize: 12
+            }}
+
+            // Progress track (dimmed and full while the check is in flight).
+            Rectangle {{
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: parent.width
+                height: 4
+                radius: 2
+                color: root.isDarkTheme ? "#2A2D35" : "#E1E4E9"
+                visible: studio.update_stage !== "current"
+                opacity: studio.update_stage === "checking" ? 0.45 : 1.0
+                Rectangle {{
+                    height: parent.height
+                    radius: 2
+                    color: "{accent}"
+                    width: studio.update_stage === "checking"
+                        ? parent.width
+                        : parent.width * updateScreen.fraction
+                    Behavior on width {{ NumberAnimation {{ duration: 160; easing.type: Easing.OutCubic }} }}
+                }}
+            }}
+
+            Text {{
+                width: parent.width
+                horizontalAlignment: Text.AlignHCenter
+                text: studio.update_status
+                color: studio.update_stage === "error" ? "#F87171" : "{text_muted}"
+                font.family: root.uiFont
+                font.pixelSize: 13
+                wrapMode: Text.WordWrap
+            }}
+
+            Text {{
+                width: parent.width
+                horizontalAlignment: Text.AlignHCenter
+                visible: (studio.update_notes || "") !== "" && studio.update_stage === "ready"
+                text: studio.update_notes || ""
+                color: "{text_muted}"
+                font.family: root.uiFont
+                font.pixelSize: 11
+                wrapMode: Text.WordWrap
+                maximumLineCount: 4
+                elide: Text.ElideRight
+                opacity: 0.85
+            }}
+
+            Item {{ width: 1; height: 4 }}
+
+            Row {{
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: 10
+
+                Rectangle {{
+                    visible: studio.update_stage === "ready" || studio.update_stage === "installing"
+                    width: 172; height: 34; radius: 4
+                    color: restartUpdateMa.containsMouse ? "#3D7BFF" : "{accent}"
+                    opacity: studio.update_stage === "installing" ? 0.55 : 1.0
+                    Text {{
+                        anchors.centerIn: parent
+                        text: studio.update_stage === "installing" ? "Restarting..." : "Restart and Update"
+                        color: "#FFFFFF"
+                        font.family: root.uiFontMedium
+                        font.pixelSize: 12
+                    }}
+                    MouseArea {{
+                        id: restartUpdateMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        enabled: studio.update_stage === "ready"
+                        onClicked: studio.install_update()
+                    }}
+                }}
+
+                Rectangle {{
+                    visible: studio.update_stage === "error" || studio.update_stage === "current"
+                    width: 118; height: 34; radius: 4
+                    color: retryUpdateMa.containsMouse ? "#3D7BFF" : "{accent}"
+                    Text {{
+                        anchors.centerIn: parent
+                        text: "Check Again"
+                        color: "#FFFFFF"
+                        font.family: root.uiFontMedium
+                        font.pixelSize: 12
+                    }}
+                    MouseArea {{
+                        id: retryUpdateMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: studio.check_for_updates(true)
+                    }}
+                }}
+
+                Rectangle {{
+                    visible: studio.update_stage !== "installing"
+                    width: 118; height: 34; radius: 4
+                    color: releaseUpdateMa.containsMouse ? (root.isDarkTheme ? "{s300}" : "#EAECEF") : "transparent"
+                    border.width: 1
+                    border.color: "{stroke}"
+                    Text {{
+                        anchors.centerIn: parent
+                        text: "View Release"
+                        color: "{text}"
+                        font.family: root.uiFont
+                        font.pixelSize: 12
+                    }}
+                    MouseArea {{
+                        id: releaseUpdateMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: studio.open_release_page()
+                    }}
+                }}
+
+                Rectangle {{
+                    visible: studio.update_stage !== "installing"
+                    width: 78; height: 34; radius: 4
+                    color: laterUpdateMa.containsMouse ? (root.isDarkTheme ? "{s300}" : "#EAECEF") : "transparent"
+                    Text {{
+                        anchors.centerIn: parent
+                        text: "Later"
+                        color: "{text_muted}"
+                        font.family: root.uiFont
+                        font.pixelSize: 12
+                    }}
+                    MouseArea {{
+                        id: laterUpdateMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: studio.dismiss_update()
+                    }}
+                }}
+            }}
+        }}
+
+        Text {{
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 32
+            text: "Great changes are coming, wait for them patiently."
+            color: "{text_muted}"
+            font.family: root.uiFont
+            font.pixelSize: 14
+        }}
+    }}
 }}
 "##,
         place_name = place_name,
+        app_version = updater::current_version(),
         ribbon_json = ribbon_json,
         explorer_json = explorer_json,
         all_enums_json = all_enums_json_str,
@@ -5855,7 +7315,20 @@ ApplicationWindow {{
     )
 }
 
+// Embedded at :/qtquickcontrols2.conf so Qt picks the customizable Basic style
+// at startup (the native Windows style ignores our dark-theme menu/scrollbar
+// chrome and forces its own black text colours).
+qmetaobject::qrc!(
+    studio_resources,
+    "../../installer" as "/" {
+        "qtquickcontrols2.conf",
+    }
+);
+
 fn main() -> Result<()> {
+    studio_resources();
+    std::env::set_var("QT_QUICK_CONTROLS_STYLE", "Basic");
+
     let tokens = DesignTokens::bundled(ThemeName::Default, ColorMode::Dark)?;
     let ribbon = RibbonDefinition::bundled()?;
     let strings = Strings::bundled("ribbon").ok();
